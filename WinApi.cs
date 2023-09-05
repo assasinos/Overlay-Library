@@ -15,7 +15,7 @@ public class WinApi
     
     
     [DllImport("user32.dll", SetLastError=true)]
-    static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+    public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
     
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
