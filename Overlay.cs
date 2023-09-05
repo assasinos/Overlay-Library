@@ -12,13 +12,15 @@ public class Overlay : IDisposable
     private readonly IWindow _window;
     private readonly GRContext _grContext;
     private readonly SKSurface _skSurface;
-    public readonly SKCanvas _skCanvas;
+    public readonly SKCanvas SkCanvas;
     
 
 
     public Overlay(Process overlaidProcess)
     {
         _overlaidProcess = overlaidProcess;
+        
+        
 
         var options = WindowOptions.Default;
         
@@ -51,10 +53,11 @@ public class Overlay : IDisposable
         {
             _window.Render += d =>
             {
-                _skCanvas.Clear(SKColors.Transparent);
+                SkCanvas.Clear(SKColors.Transparent);
                 
-                _skCanvas.Flush();
+                SkCanvas.Flush();
             };
+            UpdatePosition();
         };
         
         _window.Initialize();
@@ -65,12 +68,33 @@ public class Overlay : IDisposable
         _grContext = GRContext.CreateGl(grGlInterface);
         var renderTarget = new GRBackendRenderTarget(800, 600, 0, 8, new GRGlFramebufferInfo(0, 0x8058)); // 0x8058 = GL_RGBA8`
         _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
-        _skCanvas = _skSurface.Canvas;
-        
+        SkCanvas = _skSurface.Canvas;
+
 
     }
 
 
+    private const int UpdateInterval = 1000;
+    private async Task UpdatePosition()
+    {
+        while (true)
+        {
+            if (_overlaidProcess.HasExited)
+            {
+                Console.WriteLine("Exited");
+                Dispose();
+            }
+            
+            var rect = new WinApi.RECT();
+            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out rect);
+            //Implement Updating position
+            
+            await Task.Delay(UpdateInterval);
+        }
+    }
+    
+    
+    
     //Just Expose Run function
     public async Task Run()
     {
@@ -99,16 +123,18 @@ public class Overlay : IDisposable
         }
     }
 
+
     
     
     
     public void Dispose()
     {
         _overlaidProcess.Dispose();
+        _window.Close();
         _window?.Dispose();
         _grContext?.Dispose();
         _skSurface?.Dispose();
-        _skCanvas?.Dispose();
+        SkCanvas?.Dispose();
     }
 
 }
