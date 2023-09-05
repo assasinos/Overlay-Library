@@ -9,10 +9,10 @@ namespace OverlayLibrary;
 public class Overlay : IDisposable
 {
     private readonly Process _overlaidProcess;
-    private IWindow? _window;
-    private GRContext? _grContext;
-    private SKSurface? _skSurface;
-    public SKCanvas? _skCanvas;
+    private readonly IWindow _window;
+    private readonly GRContext _grContext;
+    private readonly SKSurface _skSurface;
+    public readonly SKCanvas _skCanvas;
     
 
 
