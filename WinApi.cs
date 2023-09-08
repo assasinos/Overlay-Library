@@ -24,5 +24,13 @@ public class WinApi
         public int Top;         // y position of upper-left corner
         public int Right;       // x position of lower-right corner
         public int Bottom;      // y position of lower-right corner
-    }
+    } 
+    
+    
+
+[DllImport("user32.dll", SetLastError=true)]
+static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, UInt32 uFlags);
+    
+    
+    
 }
