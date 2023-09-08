@@ -13,6 +13,7 @@ public class Overlay : IDisposable
     private readonly GRContext _grContext;
     private readonly SKSurface _skSurface;
     public readonly SKCanvas SkCanvas;
+    private readonly Process _thisProcess = Process.GetCurrentProcess();
     
 
 
@@ -27,7 +28,7 @@ public class Overlay : IDisposable
         //Set the size of the window to the size of the process
         var rect = new WinApi.RECT();
         WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out rect);
-        options.Size = new(rect.Right - rect.Left, rect.Bottom - rect.Top);
+        options.Size = CalculateWindowSize(rect);
 
         options.Position = new(rect.Left, rect.Top);
         
@@ -58,6 +59,8 @@ public class Overlay : IDisposable
                 SkCanvas.Flush();
             };
             UpdatePosition();
+            
+            WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE) | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
         };
         
         _window.Initialize();
@@ -74,7 +77,7 @@ public class Overlay : IDisposable
     }
 
 
-    private const int UpdateInterval = 1000;
+    private const int UpdateInterval = 200;
     private async Task UpdatePosition()
     {
         while (true)
@@ -85,9 +88,21 @@ public class Overlay : IDisposable
                 Dispose();
             }
             
+            //Retrieve the position of the process
             var rect = new WinApi.RECT();
             WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out rect);
-            //Implement Updating position
+            var size = CalculateWindowSize(rect);
+
+            WinApi.SetWindowPos(
+                _thisProcess.MainWindowHandle,
+                //Optional
+                IntPtr.Zero,
+                rect.Left,
+                rect.Top,
+                size.X,
+                size.Y,
+                0
+            );
             
             await Task.Delay(UpdateInterval);
         }
@@ -130,11 +145,18 @@ public class Overlay : IDisposable
     public void Dispose()
     {
         _overlaidProcess.Dispose();
-        _window.Close();
+        _window?.Close();
         _window?.Dispose();
         _grContext?.Dispose();
         _skSurface?.Dispose();
         SkCanvas?.Dispose();
+    }
+
+    private Vector2D<int> CalculateWindowSize(WinApi.RECT rect)
+    {
+        var width = rect.Right - rect.Left;
+        var height = rect.Bottom - rect.Top;
+        return new Vector2D<int>(width, height);
     }
 
 }
