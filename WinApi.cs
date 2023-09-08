@@ -29,7 +29,7 @@ public class WinApi
     
 
 [DllImport("user32.dll", SetLastError=true)]
-static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, UInt32 uFlags);
+public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, UInt32 uFlags);
     
     
     
