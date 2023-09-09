@@ -24,6 +24,33 @@ public class WinApi
         public int Top;         // y position of upper-left corner
         public int Right;       // x position of lower-right corner
         public int Bottom;      // y position of lower-right corner
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is not RECT other)
+                return false;
+
+            return other.Left == Left && other.Top == Top && other.Right == Right && other.Bottom == Bottom;
+        }
+
+        public bool Equals(RECT other)
+        {
+            return Left == other.Left && Top == other.Top && Right == other.Right && Bottom == other.Bottom;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Left, Top, Right, Bottom);
+        }
+        public static bool operator ==(RECT left, RECT right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(RECT left, RECT right)
+        {
+            return !(left == right);
+        }
     } 
     
     
