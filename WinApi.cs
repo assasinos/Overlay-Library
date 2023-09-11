@@ -53,20 +53,6 @@ public class WinApi
             return !(left == right);
         }
         
-        public static implicit operator SKRect(RECT myStruct)
-        {
-            return new SKRect(myStruct.Left, myStruct.Top, myStruct.Right, myStruct.Bottom);
-        }
-        public static implicit operator RECT(SKRect myStruct)
-        {
-            return new RECT()
-            {
-                Left = (int)myStruct.Left,
-                Top = (int)myStruct.Top,
-                Right = (int)myStruct.Right,
-                Bottom = (int)myStruct.Bottom
-            };
-        }
     } 
     
     
