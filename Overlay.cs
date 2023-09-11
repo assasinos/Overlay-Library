@@ -11,8 +11,8 @@ public class Overlay : IDisposable
     private readonly Process _overlaidProcess;
     private readonly IWindow _window;
     private readonly GRContext _grContext;
-    private readonly SKSurface _skSurface;
-    public readonly SKCanvas SkCanvas;
+    private SKSurface _skSurface;
+    public SKCanvas SkCanvas;
     private readonly Process _thisProcess = Process.GetCurrentProcess();
     
     private List<Menu> _menus = new();
@@ -28,7 +28,8 @@ public class Overlay : IDisposable
         //Set the size of the window to the size of the process
         var rect = new WinApi.RECT();
         WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out rect);
-        options.Size = CalculateWindowSize(rect);
+        var size = CalculateWindowSize(rect);
+        options.Size = size;
 
         options.Position = new(rect.Left, rect.Top);
         
@@ -64,7 +65,7 @@ public class Overlay : IDisposable
         grGlInterface.Validate();
 
         _grContext = GRContext.CreateGl(grGlInterface);
-        var renderTarget = new GRBackendRenderTarget(800, 600, 0, 8, new GRGlFramebufferInfo(0, 0x8058)); // 0x8058 = GL_RGBA8`
+        var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058)); // 0x8058 = GL_RGBA8`
         _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
         SkCanvas = _skSurface.Canvas;
 
@@ -84,20 +85,33 @@ public class Overlay : IDisposable
             }
             
             //Retrieve the position of the process
-            var rect = new WinApi.RECT();
-            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out rect);
-            var size = CalculateWindowSize(rect);
+            var overlaidRect = new WinApi.RECT();
+            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out overlaidRect);
+            var overlayRect = new WinApi.RECT();
+            WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out overlayRect);
 
-            WinApi.SetWindowPos(
-                _thisProcess.MainWindowHandle,
-                //Optional
-                IntPtr.Zero,
-                rect.Left,
-                rect.Top,
-                size.X,
-                size.Y,
-                0
-            );
+            if (overlaidRect != overlayRect)
+            {
+                var size = CalculateWindowSize(overlaidRect);
+            
+            
+                WinApi.SetWindowPos(
+                    _thisProcess.MainWindowHandle,
+                    //Optional
+                    IntPtr.Zero,
+                    overlaidRect.Left,
+                    overlaidRect.Top,
+                    size.X,
+                    size.Y,
+                    0
+                );
+                
+                var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058)); // 0x8058 = GL_RGBA8`
+                _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
+                SkCanvas = _skSurface.Canvas;
+                
+            }
+
             
             await Task.Delay(UpdateInterval);
         }
