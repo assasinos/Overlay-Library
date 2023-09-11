@@ -1,6 +1,7 @@
-﻿using SkiaSharp;
+﻿using System.Numerics;
+using SkiaSharp;
 
-namespace OverlayLibrary;
+namespace OverlayLibrary.Controls;
 
 public class TextControl : IControl
 {
@@ -15,29 +16,47 @@ public class TextControl : IControl
         Paint = paint;
     }
 
-    void UpdateText(string text)
+    public void UpdateText(string text)
     {
         Text = text;
     }
     
-    void UpdatePaint(SKPaint paint)
+    public string GetText()
+    {
+        return Text;
+    }
+    
+    public void UpdatePaint(SKPaint paint)
     {
         Paint = paint;
     }
-    
 
     
-    public WinApi.RECT CalculateControlRect()
+
+    public void DrawControl(SKPoint point, SKCanvas skCanvas)
     {
 
+        var textRect = CalculateControlRect();
+        
+        
+        skCanvas.DrawText(Text, point.X, point.Y + textRect.Y, Paint);
+    }
+
+    
+    /// <summary>
+    /// Calculates the size of the control
+    /// </summary>
+    /// <returns>
+    /// Width and height of the control
+    /// </returns>
+    public Vector2 CalculateControlRect()
+    {
         var bound = new SKRect();
         Paint.MeasureText(Text, ref bound);
-        return new WinApi.RECT()
+        return new Vector2()
         {
-            Left = (int)bound.Left,
-            Top = (int)bound.Top,
-            Right = (int)bound.Right,
-            Bottom = (int)bound.Bottom
+            X = bound.Width,
+            Y = bound.Height
         };
     }
 }

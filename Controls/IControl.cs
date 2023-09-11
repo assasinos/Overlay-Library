@@ -1,9 +1,7 @@
 ﻿using System.Numerics;
-using OverlayLibrary;
 using SkiaSharp;
-using static OverlayLibrary.WinApi;
 
-namespace OverlayLibrary;
+namespace OverlayLibrary.Controls;
 
 public interface IControl
 {
