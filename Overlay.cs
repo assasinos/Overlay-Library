@@ -15,7 +15,7 @@ public class Overlay : IDisposable
     public readonly SKCanvas SkCanvas;
     private readonly Process _thisProcess = Process.GetCurrentProcess();
     
-
+    private List<Menu> _menus = new();
 
     public Overlay(Process overlaidProcess)
     {
@@ -52,12 +52,7 @@ public class Overlay : IDisposable
 
         _window.Load += () =>
         {
-            _window.Render += d =>
-            {
-                SkCanvas.Clear(SKColors.Transparent);
-                
-                SkCanvas.Flush();
-            };
+            _window.Render += DrawOneFrame;
             UpdatePosition();
             
             WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE) | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
@@ -75,7 +70,7 @@ public class Overlay : IDisposable
 
 
     }
-
+    
 
     private const int UpdateInterval = 200;
     private async Task UpdatePosition()
@@ -159,4 +154,40 @@ public class Overlay : IDisposable
         return new Vector2D<int>(width, height);
     }
 
+    #region Draw
+
+    private void DrawOneFrame(double delta)
+    {
+        SkCanvas.Clear(SKColors.Transparent);
+        foreach (var menu in _menus)
+        {
+            menu.Draw(SkCanvas);
+        }
+        _skSurface.Flush();
+    }
+
+    #endregion
+    
+    
+
+    #region Menu
+
+    public void AddMenu(Menu menu)
+    {
+        _menus.Add(menu);
+    }
+    
+    public void RemoveMenu(Menu menu)
+    {
+        _menus.Remove(menu);
+    }
+
+    public void RemoveMenuByName(string name)
+    {
+        _menus.RemoveAll(m => m.Name == name);
+    }
+    #endregion
+    
+    
+    
 }
