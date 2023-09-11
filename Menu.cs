@@ -7,8 +7,10 @@ namespace OverlayLibrary;
 
 public class Menu
 {
-    private const int MenuPadding = 10;
-    private const int ControlBottomMargin = 10;
+    private const float MenuPadding = 10;
+    private const float ControlBottomMargin = 10;
+    private const float HeaderHeight = 20;
+    private const float HeaderPadding = 5;
     
     
     
@@ -85,11 +87,32 @@ public class Menu
                 Style = SKPaintStyle.Stroke
             });
         
-        //Draw Menu Header with name
+        //Draw Menu Header
         
+        //Draw header border
+        skCanvas.DrawRect(
+            menuRect.Left,
+            menuRect.Top,
+            menuRect.Width,
+            HeaderHeight,
+            new SKPaint()
+            {
+                Color = new SKColor(0, 0, 0, 255),
+                Style = SKPaintStyle.Stroke
+            });
+        
+        //Draw menu name
+        skCanvas.DrawText(Name, menuRect.Left + HeaderPadding, 
+            //Add some margin on top
+            _position.Y + HeaderHeight/2.5f,
+            new SKPaint()
+        {
+            Color = SKColors.White,
+            TextSize = 20
+        });
         
         //Draw Each control
-        var currentY = _position.Y;
+        var currentY = _position.Y + HeaderHeight;
         foreach (var control in _menuControls)
         {
             control.DrawControl(new SKPoint(_position.X, currentY), skCanvas);
@@ -97,4 +120,6 @@ public class Menu
             currentY += control.CalculateControlRect().Y + ControlBottomMargin;
         }
     }
+
+    
 }
