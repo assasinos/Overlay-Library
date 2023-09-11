@@ -85,32 +85,17 @@ public class Overlay : IDisposable
             }
             
             //Retrieve the position of the process
-            var overlaidRect = new WinApi.RECT();
-            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out overlaidRect);
-            var overlayRect = new WinApi.RECT();
-            WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out overlayRect);
+            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out var overlaidRect);
+            WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
 
             if (overlaidRect != overlayRect)
             {
                 var size = CalculateWindowSize(overlaidRect);
-            
-            
-                WinApi.SetWindowPos(
-                    _thisProcess.MainWindowHandle,
-                    //Optional
-                    IntPtr.Zero,
-                    overlaidRect.Left,
-                    overlaidRect.Top,
-                    size.X,
-                    size.Y,
-                    0
-                );
                 
-                var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
-                _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
-                SkCanvas = _skSurface.Canvas;
-                
+                ChangeWindowSize(overlaidRect,size);
             }
+
+
             
             
             await Task.Delay(UpdateInterval);
@@ -202,6 +187,23 @@ public class Overlay : IDisposable
     }
     #endregion
     
+    private void ChangeWindowSize(WinApi.RECT position,Vector2D<int> size)
+    {
+        WinApi.SetWindowPos(
+            _thisProcess.MainWindowHandle,
+            //Optional
+            IntPtr.Zero,
+            position.Left,
+            position.Top,
+            size.X,
+            size.Y,
+            0
+        );
+                
+        var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
+        _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
+        SkCanvas = _skSurface.Canvas;
+    }
     
     
 }
