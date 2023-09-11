@@ -106,12 +106,12 @@ public class Overlay : IDisposable
                     0
                 );
                 
-                var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058)); // 0x8058 = GL_RGBA8`
+                var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
                 _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
                 SkCanvas = _skSurface.Canvas;
                 
             }
-
+            
             
             await Task.Delay(UpdateInterval);
         }

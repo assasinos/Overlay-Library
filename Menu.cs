@@ -63,8 +63,11 @@ public class Menu
     /// </returns>
     private Vector2 CalculateAllControlsRect()
     {
+        
+        
         var vec = new Vector2
         {
+            //Todo: Maybe change it if the name is too long
             X = MenuHeaderNamePaint.MeasureText(Name)
         };
 
