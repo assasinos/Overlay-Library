@@ -11,9 +11,25 @@ public class Menu
     private const float ControlBottomMargin = 10;
     private const float HeaderHeight = 20;
     private const float HeaderPadding = 5;
+
+    private static readonly SKPaint MenuBorderPaint = new SKPaint()
+    {
+        Color = new SKColor(0, 0, 0, 255),
+        Style = SKPaintStyle.Stroke
+    };
+
+    private static readonly SKPaint MenuRectPaint = new SKPaint()
+    {
+        Color = new SKColor(0, 0, 0, 150),
+        Style = SKPaintStyle.Fill
+    };
     
-    
-    
+    private static readonly SKPaint MenuHeaderNamePaint = new SKPaint()
+    {
+        Color = SKColors.White,
+        TextSize = 20
+    };
+
     public string Name { get; set; }
     
     public RECT MenuRect { get; set; }
@@ -47,10 +63,11 @@ public class Menu
     /// </returns>
     private Vector2 CalculateAllControlsRect()
     {
-        var vec = new Vector2();
+        var vec = new Vector2
+        {
+            X = MenuHeaderNamePaint.MeasureText(Name)
+        };
 
-        
-        
         foreach (var controlRect in _menuControls.Select(control => control.CalculateControlRect()))
         {
             //add some margin on bottom
@@ -71,21 +88,14 @@ public class Menu
         
         skCanvas.DrawRect(
         menuRect,
-            new SKPaint()
-        {
-            Color = new SKColor(0, 0, 0, 150),
-            Style = SKPaintStyle.Fill
-        });
+            MenuRectPaint);
         
         
         //Draw Menu Border
         skCanvas.DrawRect(
             menuRect,
-            new SKPaint()
-            {
-                Color = new SKColor(0, 0, 0, 255),
-                Style = SKPaintStyle.Stroke
-            });
+            MenuBorderPaint
+            );
         
         //Draw Menu Header
         
@@ -95,21 +105,15 @@ public class Menu
             menuRect.Top,
             menuRect.Width,
             HeaderHeight,
-            new SKPaint()
-            {
-                Color = new SKColor(0, 0, 0, 255),
-                Style = SKPaintStyle.Stroke
-            });
+            MenuBorderPaint
+            );
         
         //Draw menu name
         skCanvas.DrawText(Name, menuRect.Left + HeaderPadding, 
             //Add some margin on top
             _position.Y + HeaderHeight/2.5f,
-            new SKPaint()
-        {
-            Color = SKColors.White,
-            TextSize = 20
-        });
+            MenuHeaderNamePaint
+            );
         
         //Draw Each control
         var currentY = _position.Y + HeaderHeight;
