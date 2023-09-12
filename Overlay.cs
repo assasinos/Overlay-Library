@@ -80,13 +80,38 @@ public class Overlay : IDisposable
         {
             if (_overlaidProcess.HasExited)
             {
-                Console.WriteLine("Exited");
                 Dispose();
             }
             
             //Retrieve the position of the process
             WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out var overlaidRect);
             WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
+            
+            //Check if window is minimized
+            var activeWindow = WinApi.GetForegroundWindow();
+            if ( activeWindow != _overlaidProcess.MainWindowHandle)
+            {
+                if (overlayRect.Top == -3200)
+                {
+                    await Task.Delay(UpdateInterval);
+                    continue;
+                }
+                WinApi.SetWindowPos(
+                    _thisProcess.MainWindowHandle,
+                    //Optional
+                    IntPtr.Zero,
+                    -3200,
+                    -3200,
+                    0,
+                    0,
+                    0
+                );
+                await Task.Delay(UpdateInterval);
+                continue;
+            }
+            
+            
+
 
             if (overlaidRect != overlayRect)
             {
@@ -95,9 +120,11 @@ public class Overlay : IDisposable
                 ChangeWindowSize(overlaidRect,size);
             }
 
+            
+
 
             
-            
+                
             await Task.Delay(UpdateInterval);
         }
     }
