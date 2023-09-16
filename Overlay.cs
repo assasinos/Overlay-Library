@@ -14,6 +14,8 @@ public class Overlay : IDisposable
     private SKSurface _skSurface;
     public SKCanvas SkCanvas;
     private readonly Process _thisProcess = Process.GetCurrentProcess();
+
+    private int _defaultWindowLong;
     
     private List<Menu> _menus = new();
 
@@ -56,7 +58,10 @@ public class Overlay : IDisposable
             _window.Render += DrawOneFrame;
             UpdatePosition();
             
-            WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE) | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
+            
+            _defaultWindowLong = WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE);
+            MakeWindowTransparent();
+            
         };
         
         _window.Initialize();
@@ -230,6 +235,16 @@ public class Overlay : IDisposable
         var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
         _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
         SkCanvas = _skSurface.Canvas;
+    }
+    
+    private void MakeWindowTransparent()
+    {
+        WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
+    }
+    
+    private void RevertWindowTransparency()
+    {
+        WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong);
     }
     
     
