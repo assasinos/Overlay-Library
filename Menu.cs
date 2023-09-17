@@ -42,26 +42,28 @@ public class Menu
     {
         Name = name;
         _position = position;
+        UpdateAllControlsRect();
     }
 
-
+    private Vector2 AllControlsRect { get; set; }
+    
+    
     public void AddControl(IControl control)
     {
         _menuControls.Add(control);
+        UpdateAllControlsRect();
     }
     
     public void RemoveControl(IControl control)
     {
         _menuControls.Remove(control);
+        UpdateAllControlsRect();
     }
     
     /// <summary>
     /// Calculates the size of the controls
     /// </summary>
-    /// <returns>
-    /// Minimal width and height of the menu to fit all controls
-    /// </returns>
-    private Vector2 CalculateAllControlsRect()
+    private void UpdateAllControlsRect()
     {
         
         
@@ -79,15 +81,14 @@ public class Menu
         }
         
         
-        return vec;
+        AllControlsRect = vec;
     }
 
     public void Draw(SKCanvas skCanvas)
     {
-        var allControlsRect = CalculateAllControlsRect();
         //Draw Menu background
         
-        var menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
+        var menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + AllControlsRect.X + MenuPadding * 2, _position.Y + AllControlsRect.Y + MenuPadding * 2);
         
         skCanvas.DrawRect(
         menuRect,
