@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Glfw;
 using SkiaSharp;
+
 
 namespace OverlayLibrary;
 
@@ -16,6 +19,7 @@ public class Overlay : IDisposable
     private readonly Process _thisProcess = Process.GetCurrentProcess();
 
     private int _defaultWindowLong;
+    private bool _isDragging;
     
     private List<Menu> _menus = new();
 
@@ -58,9 +62,26 @@ public class Overlay : IDisposable
             _window.Render += DrawOneFrame;
             UpdatePosition();
             
+            var mouse = _window.CreateInput()?.Mice[0];
+
+            
+            if (mouse is not null)
+            {
+
+                mouse.MouseDown += MouseOnDown;
+                mouse.MouseUp += (_, mouseButton) =>
+                {
+                    if (mouseButton == MouseButton.Left)
+                    {
+                        _isDragging = false;
+                    }
+                };
+
+            }
+            
             
             _defaultWindowLong = WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE);
-            MakeWindowTransparent();
+            //MakeWindowTransparent();
             
         };
         
@@ -76,7 +97,32 @@ public class Overlay : IDisposable
 
 
     }
+
+    private async void MouseOnDown(IMouse mouse, MouseButton mouseButton)
+    {
+        if (mouseButton != MouseButton.Left) return;
+
+        var position = mouse.Position;
+        
+        foreach (var menu in _menus.Where(menu => menu.CheckIfHeaderClicked(position)))
+        {
+            _isDragging = true;
+            await DragMenu(mouse, menu, menu.CalculateHeaderOffset(position));
+            break;
+        }
+    }
     
+
+    private async Task DragMenu(IMouse mouse, Menu menu, Vector2 offset)
+    {
+        while (_isDragging)
+        {
+            menu.UpdatePosition(mouse.Position + offset);
+            
+            await Task.Delay(10);
+        }
+    }
+
 
     private const int UpdateInterval = 200;
     private async Task UpdatePosition()
@@ -93,28 +139,31 @@ public class Overlay : IDisposable
             WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
             
             //Check if window is minimized
-            var activeWindow = WinApi.GetForegroundWindow();
-            if ( activeWindow != _overlaidProcess.MainWindowHandle)
-            {
-                if (overlayRect.Top == -3200)
-                {
-                    await Task.Delay(UpdateInterval);
-                    continue;
-                }
-                WinApi.SetWindowPos(
-                    _thisProcess.MainWindowHandle,
-                    //Optional
-                    IntPtr.Zero,
-                    -3200,
-                    -3200,
-                    0,
-                    0,
-                    0
-                );
-                await Task.Delay(UpdateInterval);
-                continue;
-            }
             
+            //Make it better and work with menu drag
+            
+            // var activeWindow = WinApi.GetForegroundWindow();
+            // if ( activeWindow != _overlaidProcess.MainWindowHandle)
+            // {
+            //     if (overlayRect.Top == -3200)
+            //     {
+            //         await Task.Delay(UpdateInterval);
+            //         continue;
+            //     }
+            //     WinApi.SetWindowPos(
+            //         _thisProcess.MainWindowHandle,
+            //         //Optional
+            //         IntPtr.Zero,
+            //         -3200,
+            //         -3200,
+            //         0,
+            //         0,
+            //         0
+            //     );
+            //     await Task.Delay(UpdateInterval);
+            //     continue;
+            // }
+            //
             
 
 
