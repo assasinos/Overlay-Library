@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using OverlayLibrary.Controls;
+using Silk.NET.Input;
 using SkiaSharp;
 using static OverlayLibrary.WinApi;
 
@@ -101,6 +102,7 @@ public class Menu
         var allControlsRect = GetAllControlsRect();
         _menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
 
+        _headerRect = new SKRect(_menuRect.Left, _menuRect.Top, _menuRect.Right, _menuRect.Top + HeaderHeight);
     }
 
     public void Draw(SKCanvas skCanvas)
@@ -121,10 +123,7 @@ public class Menu
         
         //Draw header border
         skCanvas.DrawRect(
-            _menuRect.Left,
-            _menuRect.Top,
-            _menuRect.Width,
-            HeaderHeight,
+            _headerRect,
             MenuBorderPaint
             );
         
@@ -145,17 +144,14 @@ public class Menu
         }
     }
 
-
-
     
-    
-    public void CheckIfHeaderClicked(Vector2 position)
+    public bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
+
+    public Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_headerRect.Left - position.X, _headerRect.Top - position.Y);
+
+    public void UpdatePosition(Vector2 mousePosition)
     {
-        //Header Border 
-        // x == _position.X - MenuPadding,
-        // y == _position.Y - MenuPadding,
-        // w == menuRect.Width,
-        // h == HeaderHeight,
-
+        _position = new SKPoint(mousePosition.X, mousePosition.Y);
+        UpdateMenuRect();
     }
 }
