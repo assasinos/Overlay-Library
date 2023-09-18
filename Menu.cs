@@ -1,8 +1,6 @@
 ﻿using System.Numerics;
 using OverlayLibrary.Controls;
-using Silk.NET.Input;
 using SkiaSharp;
-using static OverlayLibrary.WinApi;
 
 namespace OverlayLibrary;
 
@@ -41,7 +39,7 @@ public class Menu
     #region Positions
 
     
-    private SKRect _menuRect;
+    public SKRect MenuRect { get; private set; }
     private SKRect _headerRect;
     private SKPoint _position;
     
@@ -100,9 +98,9 @@ public class Menu
     private void UpdateMenuRect()
     {
         var allControlsRect = GetAllControlsRect();
-        _menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
+        MenuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
 
-        _headerRect = new SKRect(_menuRect.Left, _menuRect.Top, _menuRect.Right, _menuRect.Top + HeaderHeight);
+        _headerRect = new SKRect(MenuRect.Left, MenuRect.Top, MenuRect.Right, MenuRect.Top + HeaderHeight);
     }
 
     
@@ -110,13 +108,13 @@ public class Menu
     {
         //Draw Menu background
         skCanvas.DrawRect(
-            _menuRect,
+            MenuRect,
             MenuRectPaint);
         
         
         //Draw Menu Border
         skCanvas.DrawRect(
-            _menuRect,
+            MenuRect,
             MenuBorderPaint
             );
         
@@ -129,7 +127,7 @@ public class Menu
             );
         
         //Draw menu name
-        skCanvas.DrawText(Name, _menuRect.Left + HeaderPadding, 
+        skCanvas.DrawText(Name, MenuRect.Left + HeaderPadding, 
             //Add some margin on top
             _position.Y + HeaderHeight/2.5f,
             MenuHeaderNamePaint
@@ -152,6 +150,7 @@ public class Menu
 
     public void UpdatePosition(Vector2 mousePosition)
     {
+        
         _position = new SKPoint(mousePosition.X, mousePosition.Y);
         UpdateMenuRect();
     }

@@ -117,7 +117,14 @@ public class Overlay : IDisposable
     {
         while (_isDragging)
         {
-            menu.UpdatePosition(mouse.Position + offset);
+            var newPosition = new Vector2()
+            {
+                X= Math.Clamp(mouse.Position.X + offset.X, 20 - menu.MenuRect.Width,_window.Size.X),
+                Y= Math.Clamp(mouse.Position.Y + offset.Y, 0,_window.Size.Y),
+            };
+            
+            menu.UpdatePosition(newPosition);
+            
             
             await Task.Delay(10);
         }
