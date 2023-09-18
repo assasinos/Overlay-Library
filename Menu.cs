@@ -7,6 +7,8 @@ namespace OverlayLibrary;
 
 public class Menu
 {
+    #region Consts
+
     private const float MenuPadding = 10;
     private const float ControlBottomMargin = 10;
     private const float HeaderHeight = 20;
@@ -30,40 +32,50 @@ public class Menu
         TextSize = 20
     };
 
-    public string Name { get; set; }
-    
-    public RECT MenuRect { get; set; }
+    #endregion
 
+
+    public string Name { get; set; }
+
+    #region Positions
+
+    
+    private SKRect _menuRect;
+    private SKRect _headerRect;
+    private SKPoint _position;
+    
+    #endregion
+
+    
+    
+    
     private readonly List<IControl> _menuControls = new();
     
-    private SKPoint _position;
+
 
     public Menu(string name, SKPoint position)
     {
         Name = name;
         _position = position;
-        UpdateAllControlsRect();
+        UpdateMenuRect();
     }
-
-    private Vector2 AllControlsRect { get; set; }
-    
     
     public void AddControl(IControl control)
     {
         _menuControls.Add(control);
-        UpdateAllControlsRect();
+        UpdateMenuRect();
     }
     
     public void RemoveControl(IControl control)
     {
         _menuControls.Remove(control);
-        UpdateAllControlsRect();
+        UpdateMenuRect();
     }
     
     /// <summary>
     /// Calculates the size of the controls
     /// </summary>
-    private void UpdateAllControlsRect()
+    private Vector2 GetAllControlsRect()
     {
         
         
@@ -81,23 +93,27 @@ public class Menu
         }
         
         
-        AllControlsRect = vec;
+        return vec;
+    }
+
+    private void UpdateMenuRect()
+    {
+        var allControlsRect = GetAllControlsRect();
+        _menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
+
     }
 
     public void Draw(SKCanvas skCanvas)
     {
         //Draw Menu background
-        
-        var menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + AllControlsRect.X + MenuPadding * 2, _position.Y + AllControlsRect.Y + MenuPadding * 2);
-        
         skCanvas.DrawRect(
-        menuRect,
+            _menuRect,
             MenuRectPaint);
         
         
         //Draw Menu Border
         skCanvas.DrawRect(
-            menuRect,
+            _menuRect,
             MenuBorderPaint
             );
         
@@ -105,15 +121,15 @@ public class Menu
         
         //Draw header border
         skCanvas.DrawRect(
-            menuRect.Left,
-            menuRect.Top,
-            menuRect.Width,
+            _menuRect.Left,
+            _menuRect.Top,
+            _menuRect.Width,
             HeaderHeight,
             MenuBorderPaint
             );
         
         //Draw menu name
-        skCanvas.DrawText(Name, menuRect.Left + HeaderPadding, 
+        skCanvas.DrawText(Name, _menuRect.Left + HeaderPadding, 
             //Add some margin on top
             _position.Y + HeaderHeight/2.5f,
             MenuHeaderNamePaint
@@ -129,5 +145,17 @@ public class Menu
         }
     }
 
+
+
     
+    
+    public void CheckIfHeaderClicked(Vector2 position)
+    {
+        //Header Border 
+        // x == _position.X - MenuPadding,
+        // y == _position.Y - MenuPadding,
+        // w == menuRect.Width,
+        // h == HeaderHeight,
+
+    }
 }
