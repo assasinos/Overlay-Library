@@ -1,12 +1,13 @@
 ﻿using System.Numerics;
 using OverlayLibrary.Controls;
 using SkiaSharp;
-using static OverlayLibrary.WinApi;
 
 namespace OverlayLibrary;
 
 public class Menu
 {
+    #region Consts
+
     private const float MenuPadding = 10;
     private const float ControlBottomMargin = 10;
     private const float HeaderHeight = 20;
@@ -30,38 +31,50 @@ public class Menu
         TextSize = 20
     };
 
-    public string Name { get; set; }
-    
-    public RECT MenuRect { get; set; }
+    #endregion
 
+
+    public string Name { get; set; }
+
+    #region Positions
+
+    
+    public SKRect MenuRect { get; private set; }
+    private SKRect _headerRect;
+    private SKPoint _position;
+    
+    #endregion
+
+    
+    
+    
     private readonly List<IControl> _menuControls = new();
     
-    private SKPoint _position;
+
 
     public Menu(string name, SKPoint position)
     {
         Name = name;
         _position = position;
+        UpdateMenuRect();
     }
-
-
+    
     public void AddControl(IControl control)
     {
         _menuControls.Add(control);
+        UpdateMenuRect();
     }
     
     public void RemoveControl(IControl control)
     {
         _menuControls.Remove(control);
+        UpdateMenuRect();
     }
     
     /// <summary>
     /// Calculates the size of the controls
     /// </summary>
-    /// <returns>
-    /// Minimal width and height of the menu to fit all controls
-    /// </returns>
-    private Vector2 CalculateAllControlsRect()
+    private Vector2 GetAllControlsRect()
     {
         
         
@@ -82,21 +95,26 @@ public class Menu
         return vec;
     }
 
+    private void UpdateMenuRect()
+    {
+        var allControlsRect = GetAllControlsRect();
+        MenuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
+
+        _headerRect = new SKRect(MenuRect.Left, MenuRect.Top, MenuRect.Right, MenuRect.Top + HeaderHeight);
+    }
+
+    
     public void Draw(SKCanvas skCanvas)
     {
-        var allControlsRect = CalculateAllControlsRect();
         //Draw Menu background
-        
-        var menuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
-        
         skCanvas.DrawRect(
-        menuRect,
+            MenuRect,
             MenuRectPaint);
         
         
         //Draw Menu Border
         skCanvas.DrawRect(
-            menuRect,
+            MenuRect,
             MenuBorderPaint
             );
         
@@ -104,15 +122,12 @@ public class Menu
         
         //Draw header border
         skCanvas.DrawRect(
-            menuRect.Left,
-            menuRect.Top,
-            menuRect.Width,
-            HeaderHeight,
+            _headerRect,
             MenuBorderPaint
             );
         
         //Draw menu name
-        skCanvas.DrawText(Name, menuRect.Left + HeaderPadding, 
+        skCanvas.DrawText(Name, MenuRect.Left + HeaderPadding, 
             //Add some margin on top
             _position.Y + HeaderHeight/2.5f,
             MenuHeaderNamePaint
@@ -129,4 +144,14 @@ public class Menu
     }
 
     
+    public bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
+
+    public Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_position.X - position.X, _position.Y - position.Y);
+
+    public void UpdatePosition(Vector2 mousePosition)
+    {
+        
+        _position = new SKPoint(mousePosition.X, mousePosition.Y);
+        UpdateMenuRect();
+    }
 }

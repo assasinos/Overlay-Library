@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Glfw;
 using SkiaSharp;
+
 
 namespace OverlayLibrary;
 
@@ -14,6 +17,9 @@ public class Overlay : IDisposable
     private SKSurface _skSurface;
     public SKCanvas SkCanvas;
     private readonly Process _thisProcess = Process.GetCurrentProcess();
+
+    private int _defaultWindowLong;
+    private bool _isDragging;
     
     private List<Menu> _menus = new();
 
@@ -56,7 +62,27 @@ public class Overlay : IDisposable
             _window.Render += DrawOneFrame;
             UpdatePosition();
             
-            WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE) | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
+            var mouse = _window.CreateInput()?.Mice[0];
+
+            
+            if (mouse is not null)
+            {
+
+                mouse.MouseDown += MouseOnDown;
+                mouse.MouseUp += (_, mouseButton) =>
+                {
+                    if (mouseButton == MouseButton.Left)
+                    {
+                        _isDragging = false;
+                    }
+                };
+
+            }
+            
+            
+            _defaultWindowLong = WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE);
+            //MakeWindowTransparent();
+            
         };
         
         _window.Initialize();
@@ -71,7 +97,39 @@ public class Overlay : IDisposable
 
 
     }
+
+    private async void MouseOnDown(IMouse mouse, MouseButton mouseButton)
+    {
+        if (mouseButton != MouseButton.Left) return;
+
+        var position = mouse.Position;
+        
+        foreach (var menu in _menus.Where(menu => menu.CheckIfHeaderClicked(position)))
+        {
+            _isDragging = true;
+            await DragMenu(mouse, menu, menu.CalculateHeaderOffset(position));
+            break;
+        }
+    }
     
+
+    private async Task DragMenu(IMouse mouse, Menu menu, Vector2 offset)
+    {
+        while (_isDragging)
+        {
+            var newPosition = new Vector2()
+            {
+                X= Math.Clamp(mouse.Position.X + offset.X, 20 - menu.MenuRect.Width,_window.Size.X),
+                Y= Math.Clamp(mouse.Position.Y + offset.Y, 0,_window.Size.Y),
+            };
+            
+            menu.UpdatePosition(newPosition);
+            
+            
+            await Task.Delay(10);
+        }
+    }
+
 
     private const int UpdateInterval = 200;
     private async Task UpdatePosition()
@@ -80,39 +138,54 @@ public class Overlay : IDisposable
         {
             if (_overlaidProcess.HasExited)
             {
-                Console.WriteLine("Exited");
                 Dispose();
             }
             
             //Retrieve the position of the process
-            var overlaidRect = new WinApi.RECT();
-            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out overlaidRect);
-            var overlayRect = new WinApi.RECT();
-            WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out overlayRect);
+            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out var overlaidRect);
+            WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
+            
+            //Check if window is minimized
+            
+            //Make it better and work with menu drag
+            
+            // var activeWindow = WinApi.GetForegroundWindow();
+            // if ( activeWindow != _overlaidProcess.MainWindowHandle)
+            // {
+            //     if (overlayRect.Top == -3200)
+            //     {
+            //         await Task.Delay(UpdateInterval);
+            //         continue;
+            //     }
+            //     WinApi.SetWindowPos(
+            //         _thisProcess.MainWindowHandle,
+            //         //Optional
+            //         IntPtr.Zero,
+            //         -3200,
+            //         -3200,
+            //         0,
+            //         0,
+            //         0
+            //     );
+            //     await Task.Delay(UpdateInterval);
+            //     continue;
+            // }
+            //
+            
+
 
             if (overlaidRect != overlayRect)
             {
                 var size = CalculateWindowSize(overlaidRect);
-            
-            
-                WinApi.SetWindowPos(
-                    _thisProcess.MainWindowHandle,
-                    //Optional
-                    IntPtr.Zero,
-                    overlaidRect.Left,
-                    overlaidRect.Top,
-                    size.X,
-                    size.Y,
-                    0
-                );
                 
-                var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
-                _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
-                SkCanvas = _skSurface.Canvas;
-                
+                ChangeWindowSize(overlaidRect,size);
             }
+
             
+
+
             
+                
             await Task.Delay(UpdateInterval);
         }
     }
@@ -202,6 +275,33 @@ public class Overlay : IDisposable
     }
     #endregion
     
+    private void ChangeWindowSize(WinApi.RECT position,Vector2D<int> size)
+    {
+        WinApi.SetWindowPos(
+            _thisProcess.MainWindowHandle,
+            //Optional
+            IntPtr.Zero,
+            position.Left,
+            position.Top,
+            size.X,
+            size.Y,
+            0
+        );
+                
+        var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
+        _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
+        SkCanvas = _skSurface.Canvas;
+    }
+    
+    private void MakeWindowTransparent()
+    {
+        WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
+    }
+    
+    private void RevertWindowTransparency()
+    {
+        WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong);
+    }
     
     
 }
