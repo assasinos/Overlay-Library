@@ -105,6 +105,7 @@ public class Menu
         _headerRect = new SKRect(_menuRect.Left, _menuRect.Top, _menuRect.Right, _menuRect.Top + HeaderHeight);
     }
 
+    
     public void Draw(SKCanvas skCanvas)
     {
         //Draw Menu background
@@ -147,7 +148,7 @@ public class Menu
     
     public bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
 
-    public Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_headerRect.Left - position.X, _headerRect.Top - position.Y);
+    public Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_position.X - position.X, _position.Y - position.Y);
 
     public void UpdatePosition(Vector2 mousePosition)
     {
