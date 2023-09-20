@@ -198,30 +198,8 @@ public class Overlay : IDisposable
         _window.Run();
     }
     
-    
-    //Expose Render event
-    public event Action<double> Render
-    {
-        add
-        {
-            if (_window is null)
-            {
-                throw new Exception("Window is not initialized");
-            }
-            _window.Render += value;
-        }
-        remove
-        {
-            if (_window is null)
-            {
-                throw new Exception("Window is not initialized");
-            }
-            _window.Render -= value;
-        }
-    }
 
 
-    
     
     
     public void Dispose()
