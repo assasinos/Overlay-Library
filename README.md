@@ -7,5 +7,5 @@ Overlay library with menus (just like IMGUI) written with SkiaSharp
 
 - [x] Menu Drawing with controls
 - [x] Make menus moveable
-- [ ] Add Keyboard hook
+- [x] Add Keyboard hook
 - [ ] Add pin to menu, to make them always visible
