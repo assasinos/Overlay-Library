@@ -90,7 +90,7 @@ public class Overlay : IDisposable
             #region Keyboard
 
             _keyboardHook = new KeyboardHook(overlayKey);
-
+            
             _keyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
 
             #endregion
@@ -122,10 +122,10 @@ public class Overlay : IDisposable
         switch (_isOverlayActive)
         {
             case true:
-                RevertWindowTransparency();
+                MakeWindowTransparent();
                 break;
             default:
-                MakeWindowTransparent();
+                RevertWindowTransparency();
                 break;
         }
 
@@ -317,11 +317,13 @@ public class Overlay : IDisposable
     private void MakeWindowTransparent()
     {
         WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
+        WinApi.SetForegroundWindow(_overlaidProcess.MainWindowHandle);
     }
     
     private void RevertWindowTransparency()
     {
         WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong);
+        WinApi.SetForegroundWindow(_thisProcess.MainWindowHandle);
     }
 
     #endregion

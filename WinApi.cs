@@ -64,8 +64,9 @@ public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int 
 public static extern IntPtr GetForegroundWindow();
 
 
-
-
+[DllImport("user32.dll")]
+[return: MarshalAs(UnmanagedType.Bool)]
+public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 
 
@@ -73,6 +74,8 @@ public static extern IntPtr GetForegroundWindow();
     public static extern short GetAsyncKeyState(VK vKey);
     
 
+    
+    
     #region Keys
 
     public enum VK : int
