@@ -9,3 +9,4 @@ Overlay library with menus (just like IMGUI) written with SkiaSharp
 - [x] Make menus moveable
 - [x] Add Keyboard hook
 - [ ] Add pin to menu, to make them always visible
+- [ ] Add support for linux
