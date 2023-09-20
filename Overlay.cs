@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using OverlayLibrary.Hooks;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -20,10 +21,13 @@ public class Overlay : IDisposable
 
     private int _defaultWindowLong;
     private bool _isDragging;
+    private bool _isOverlayActive = false;
+    
+    private KeyboardHook _keyboardHook;
     
     private List<Menu> _menus = new();
 
-    public Overlay(Process overlaidProcess)
+    public Overlay(Process overlaidProcess, WinApi.VK overlayKey = WinApi.VK.INSERT)
     {
         _overlaidProcess = overlaidProcess;
         
@@ -61,7 +65,9 @@ public class Overlay : IDisposable
         {
             _window.Render += DrawOneFrame;
             UpdatePosition();
-            
+
+            #region Mouse
+
             var mouse = _window.CreateInput()?.Mice[0];
 
             
@@ -78,10 +84,20 @@ public class Overlay : IDisposable
                 };
 
             }
+
+            #endregion
+
+            #region Keyboard
+
+            _keyboardHook = new KeyboardHook(overlayKey);
+
+            _keyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
+
+            #endregion
             
             
             _defaultWindowLong = WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE);
-            //MakeWindowTransparent();
+            MakeWindowTransparent();
             
         };
         
@@ -98,6 +114,24 @@ public class Overlay : IDisposable
 
     }
 
+    #region Events
+    
+    
+    private void KeyboardHookOnKeyPressed(object? sender, EventArgs e)
+    {
+        switch (_isOverlayActive)
+        {
+            case true:
+                RevertWindowTransparency();
+                break;
+            default:
+                MakeWindowTransparent();
+                break;
+        }
+
+        _isOverlayActive = !_isOverlayActive;
+    }
+
     private async void MouseOnDown(IMouse mouse, MouseButton mouseButton)
     {
         if (mouseButton != MouseButton.Left) return;
@@ -112,7 +146,7 @@ public class Overlay : IDisposable
         }
     }
     
-
+    #endregion
     private async Task DragMenu(IMouse mouse, Menu menu, Vector2 offset)
     {
         while (_isDragging)
@@ -192,36 +226,7 @@ public class Overlay : IDisposable
     
     
     
-    //Just Expose Run function
-    public async Task Run()
-    {
-        _window.Run();
-    }
-    
-    
-    //Expose Render event
-    public event Action<double> Render
-    {
-        add
-        {
-            if (_window is null)
-            {
-                throw new Exception("Window is not initialized");
-            }
-            _window.Render += value;
-        }
-        remove
-        {
-            if (_window is null)
-            {
-                throw new Exception("Window is not initialized");
-            }
-            _window.Render -= value;
-        }
-    }
 
-
-    
     
     
     public void Dispose()
@@ -232,14 +237,11 @@ public class Overlay : IDisposable
         _grContext?.Dispose();
         _skSurface?.Dispose();
         SkCanvas?.Dispose();
+        _keyboardHook.Stop();
+        
     }
 
-    private Vector2D<int> CalculateWindowSize(WinApi.RECT rect)
-    {
-        var width = rect.Right - rect.Left;
-        var height = rect.Bottom - rect.Top;
-        return new Vector2D<int>(width, height);
-    }
+
 
     #region Draw
 
@@ -274,6 +276,25 @@ public class Overlay : IDisposable
         _menus.RemoveAll(m => m.Name == name);
     }
     #endregion
+
+
+    #region Overlay Functions
+
+    //Just Expose Run function
+    public async Task Run()
+    {
+        _window.Run();
+    }
+
+    
+    
+    private Vector2D<int> CalculateWindowSize(WinApi.RECT rect)
+    {
+        var width = rect.Right - rect.Left;
+        var height = rect.Bottom - rect.Top;
+        return new Vector2D<int>(width, height);
+    }
+    
     
     private void ChangeWindowSize(WinApi.RECT position,Vector2D<int> size)
     {
@@ -302,6 +323,9 @@ public class Overlay : IDisposable
     {
         WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong);
     }
+
+    #endregion
+
     
     
 }
