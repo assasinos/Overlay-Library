@@ -34,12 +34,12 @@ public class Menu
     #endregion
 
 
-    public string Name { get; set; }
+    internal string Name { get; set; }
 
     #region Positions
 
     
-    public SKRect MenuRect { get; private set; }
+    internal SKRect MenuRect { get; private set; }
     private SKRect _headerRect;
     private SKPoint _position;
     
@@ -104,7 +104,7 @@ public class Menu
     }
 
     
-    public void Draw(SKCanvas skCanvas)
+    internal void Draw(SKCanvas skCanvas)
     {
         //Draw Menu background
         skCanvas.DrawRect(
@@ -144,11 +144,11 @@ public class Menu
     }
 
     
-    public bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
+    internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
 
-    public Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_position.X - position.X, _position.Y - position.Y);
+    internal Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_position.X - position.X, _position.Y - position.Y);
 
-    public void UpdatePosition(Vector2 mousePosition)
+    internal void UpdatePosition(Vector2 mousePosition)
     {
         
         _position = new SKPoint(mousePosition.X, mousePosition.Y);
