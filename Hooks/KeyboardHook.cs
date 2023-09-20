@@ -1,9 +1,9 @@
 ﻿namespace OverlayLibrary.Hooks;
 using static WinApi;
 
-public class KeyboardHook
+public sealed class KeyboardHook
 {
-    private VK _registeredKey;
+    private readonly VK _registeredKey;
     
     private bool _shouldStop = false;
     
@@ -12,7 +12,11 @@ public class KeyboardHook
     public KeyboardHook(VK registeredKey)
     {
         _registeredKey = registeredKey;
-        var thread = new Thread(Start);
+        var thread = new Thread(Start)
+        {
+            IsBackground = true,
+            Name = "KeyboardHook"
+        };
         thread.Start();
     }
     private void Start()
@@ -30,7 +34,7 @@ public class KeyboardHook
         
     }
 
-    protected virtual void OnKeyPressed()
+    private void OnKeyPressed()
     {
         KeyPressed?.Invoke(this, EventArgs.Empty);
     }

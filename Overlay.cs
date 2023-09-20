@@ -16,7 +16,7 @@ public class Overlay : IDisposable
     private readonly IWindow _window;
     private readonly GRContext _grContext;
     private SKSurface _skSurface;
-    public SKCanvas SkCanvas;
+    private SKCanvas _skCanvas;
     private readonly Process _thisProcess = Process.GetCurrentProcess();
 
     private int _defaultWindowLong;
@@ -109,7 +109,7 @@ public class Overlay : IDisposable
         _grContext = GRContext.CreateGl(grGlInterface);
         var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058)); // 0x8058 = GL_RGBA8`
         _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
-        SkCanvas = _skSurface.Canvas;
+        _skCanvas = _skSurface.Canvas;
 
 
     }
@@ -236,7 +236,7 @@ public class Overlay : IDisposable
         _window?.Dispose();
         _grContext?.Dispose();
         _skSurface?.Dispose();
-        SkCanvas?.Dispose();
+        _skCanvas?.Dispose();
         _keyboardHook.Stop();
         
     }
@@ -247,10 +247,10 @@ public class Overlay : IDisposable
 
     private void DrawOneFrame(double delta)
     {
-        SkCanvas.Clear(SKColors.Transparent);
+        _skCanvas.Clear(SKColors.Transparent);
         foreach (var menu in _menus)
         {
-            menu.Draw(SkCanvas);
+            menu.Draw(_skCanvas);
         }
         _skSurface.Flush();
     }
@@ -311,7 +311,7 @@ public class Overlay : IDisposable
                 
         var renderTarget = new GRBackendRenderTarget(size.X, size.Y, 0, 8, new GRGlFramebufferInfo(0, 0x8058));
         _skSurface = SKSurface.Create(_grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
-        SkCanvas = _skSurface.Canvas;
+        _skCanvas = _skSurface.Canvas;
     }
     
     private void MakeWindowTransparent()
