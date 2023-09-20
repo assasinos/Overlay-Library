@@ -71,6 +71,18 @@ public class Menu
         UpdateMenuRect();
     }
     
+    public void RemoveControlAt(int index)
+    {
+        _menuControls.RemoveAt(index);
+        UpdateMenuRect();
+    }
+    
+    public void ClearControls()
+    {
+        _menuControls.Clear();
+        UpdateMenuRect();
+    }
+    
     /// <summary>
     /// Calculates the size of the controls
     /// </summary>
