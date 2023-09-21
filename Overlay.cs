@@ -21,11 +21,11 @@ public class Overlay : IDisposable
 
     private int _defaultWindowLong;
     private bool _isDragging;
-    private bool _isOverlayActive = false;
+    private bool _isOverlayActive;
     
-    private KeyboardHook _keyboardHook;
+    private KeyboardHook _keyboardHook = null!;
     
-    private List<Menu> _menus = new();
+    private readonly List<Menu> _menus = new();
 
     public Overlay(Process overlaidProcess, WinApi.VK overlayKey = WinApi.VK.INSERT)
     {
@@ -36,8 +36,7 @@ public class Overlay : IDisposable
         var options = WindowOptions.Default;
         
         //Set the size of the window to the size of the process
-        var rect = new WinApi.RECT();
-        WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out rect);
+        WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out var rect);
         var size = CalculateWindowSize(rect);
         options.Size = size;
 
@@ -64,14 +63,18 @@ public class Overlay : IDisposable
         _window.Load += () =>
         {
             _window.Render += DrawOneFrame;
-            UpdatePosition();
+            
+            Task.Run(async () =>
+            {
+                await UpdatePosition();
+            });
 
             #region Mouse
 
-            var mouse = _window.CreateInput()?.Mice[0];
+            
 
             
-            if (mouse is not null)
+            if ( _window.CreateInput().Mice[0] is { } mouse)
             {
 
                 mouse.MouseDown += MouseOnDown;
@@ -103,7 +106,7 @@ public class Overlay : IDisposable
         
         _window.Initialize();
         
-        using var grGlInterface = GRGlInterface.Create((name => _window.GLContext!.TryGetProcAddress(name, out var addr) ? addr : (IntPtr) 0));
+        using var grGlInterface = GRGlInterface.Create((name => _window.GLContext!.TryGetProcAddress(name, out var addr) ? addr : 0));
         grGlInterface.Validate();
 
         _grContext = GRContext.CreateGl(grGlInterface);
@@ -180,7 +183,9 @@ public class Overlay : IDisposable
             WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
             
             //Check if window is minimized
-            
+
+            #region Minimized
+
             //Make it better and work with menu drag
             
             // var activeWindow = WinApi.GetForegroundWindow();
@@ -205,19 +210,18 @@ public class Overlay : IDisposable
             //     continue;
             // }
             //
+
+
+            #endregion
+
             
-
-
             if (overlaidRect != overlayRect)
             {
                 var size = CalculateWindowSize(overlaidRect);
                 
                 ChangeWindowSize(overlaidRect,size);
             }
-
             
-
-
             
                 
             await Task.Delay(UpdateInterval);
@@ -232,11 +236,11 @@ public class Overlay : IDisposable
     public void Dispose()
     {
         _overlaidProcess.Dispose();
-        _window?.Close();
-        _window?.Dispose();
-        _grContext?.Dispose();
-        _skSurface?.Dispose();
-        _skCanvas?.Dispose();
+        _window.Close();
+        _window.Dispose();
+        _grContext.Dispose();
+        _skSurface.Dispose();
+        _skCanvas.Dispose();
         _keyboardHook.Stop();
         
     }
@@ -281,7 +285,7 @@ public class Overlay : IDisposable
     #region Overlay Functions
 
     //Just Expose Run function
-    public async Task Run()
+    public void Run()
     {
         _window.Run();
     }
