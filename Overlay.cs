@@ -147,6 +147,12 @@ public class Overlay : IDisposable
             await DragMenu(mouse, menu, menu.CalculateHeaderOffset(position));
             break;
         }
+
+        foreach (var menu in _menus.Where(menu => menu.CheckIfPinClicked(position)))
+        {
+            menu.IsPinned = !menu.IsPinned;
+        }
+        
     }
     
     #endregion
@@ -254,8 +260,12 @@ public class Overlay : IDisposable
         _skCanvas.Clear(SKColors.Transparent);
         foreach (var menu in _menus)
         {
-            menu.Draw(_skCanvas);
+            if (menu.IsPinned || _isOverlayActive)
+            {
+                menu.Draw(_skCanvas);
+            }
         }
+
         _skSurface.Flush();
     }
 
