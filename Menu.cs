@@ -63,7 +63,7 @@ public class Menu
     #region Positions
 
     
-    internal SKRect MenuRect { get; private set; }
+    internal SKRect MenuRect { get; private set; } 
     private SKRect _headerRect;
     private SKPoint _position;
     
@@ -138,6 +138,7 @@ public class Menu
 
         _headerRect = new SKRect(MenuRect.Left, MenuRect.Top, MenuRect.Right, MenuRect.Top + HeaderHeight);
         
+        
     }
 
     
@@ -173,6 +174,9 @@ public class Menu
         //Draw Menu buttons
         
         //Draw pin button
+        
+        
+        
         skCanvas.DrawCircle(MenuRect.Right - HeaderPadding - HeaderHeight/2.5f, _position.Y, HeaderHeight/2.5f, IsPinned ? MenuActivePinButtonPaint : MenuInactivePinButtonPaint);
         
         
@@ -188,7 +192,15 @@ public class Menu
     }
 
     
-    internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
+    internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y) && !CheckIfPinClicked(position);
+
+    internal bool CheckIfPinClicked(Vector2 position) =>
+        //X
+        !(position.X < (MenuRect.Right - HeaderPadding - HeaderHeight / 2.5f) - HeaderHeight / 2.5f) &&
+        !(position.X > (MenuRect.Right - HeaderPadding - HeaderHeight / 2.5f) + HeaderHeight / 2.5f) &&
+        //Y
+        !(position.Y < _position.Y - HeaderHeight / 2.5f) && 
+        !(position.Y > _position.Y + HeaderHeight / 2.5f);
 
     internal Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_position.X - position.X, _position.Y - position.Y);
 
