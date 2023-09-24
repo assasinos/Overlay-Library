@@ -55,7 +55,7 @@ public class Menu
     private readonly List<IControl> _menuControls = new();
     internal string Name { get; }
     
-    internal bool IsPinned { get; set; } = false;
+    internal bool IsPinned { get; set; }
 
     #endregion
 
@@ -76,12 +76,14 @@ public class Menu
     
 
 
-    public Menu(string name, SKPoint position)
+    public Menu(string name, SKPoint position, bool startPinned = true)
     {
         Name = name;
         _position = position;
+        IsPinned = startPinned;
         UpdateMenuRect();
     }
+
     
     public void AddControl(IControl control)
     {
