@@ -8,16 +8,31 @@ public class Menu
 {
     #region Consts
 
+
+    
     private const float MenuPadding = 10;
     private const float ControlBottomMargin = 10;
     private const float HeaderHeight = 20;
     private const float HeaderPadding = 5;
-
+    
     private static readonly SKPaint MenuBorderPaint = new SKPaint()
     {
         Color = new SKColor(0, 0, 0, 255),
         Style = SKPaintStyle.Stroke
     };
+    
+    
+    private static readonly SKPaint MenuActivePinButtonPaint = new SKPaint()
+    {
+        Color = new SKColor(0, 255, 0, 255),
+        Style = SKPaintStyle.Fill
+    };
+    private static readonly SKPaint MenuInactivePinButtonPaint = new SKPaint()
+    {
+        Color = new SKColor(153, 153, 153, 255),
+        Style = SKPaintStyle.Fill
+    };
+    
 
     private static readonly SKPaint MenuRectPaint = new SKPaint()
     {
@@ -34,12 +49,21 @@ public class Menu
     #endregion
 
 
-    internal string Name { get; set; }
+
+    #region Properties
+
+    private readonly List<IControl> _menuControls = new();
+    internal string Name { get; }
+    
+    internal bool IsPinned { get; set; } = false;
+
+    #endregion
+
 
     #region Positions
 
     
-    internal SKRect MenuRect { get; private set; }
+    internal SKRect MenuRect { get; private set; } 
     private SKRect _headerRect;
     private SKPoint _position;
     
@@ -48,7 +72,7 @@ public class Menu
     
     
     
-    private readonly List<IControl> _menuControls = new();
+    
     
 
 
@@ -113,6 +137,8 @@ public class Menu
         MenuRect = new SKRect(_position.X - MenuPadding, _position.Y - MenuPadding, _position.X + allControlsRect.X + MenuPadding * 2, _position.Y + allControlsRect.Y + MenuPadding * 2);
 
         _headerRect = new SKRect(MenuRect.Left, MenuRect.Top, MenuRect.Right, MenuRect.Top + HeaderHeight);
+        
+        
     }
 
     
@@ -145,6 +171,16 @@ public class Menu
             MenuHeaderNamePaint
             );
         
+        //Draw Menu buttons
+        
+        //Draw pin button
+        
+        
+        
+        skCanvas.DrawCircle(MenuRect.Right - HeaderPadding - HeaderHeight/2.5f, _position.Y, HeaderHeight/2.5f, IsPinned ? MenuActivePinButtonPaint : MenuInactivePinButtonPaint);
+        
+        
+        
         //Draw Each control
         var currentY = _position.Y + HeaderHeight;
         foreach (var control in _menuControls)
@@ -156,7 +192,15 @@ public class Menu
     }
 
     
-    internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y);
+    internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y) && !CheckIfPinClicked(position);
+
+    internal bool CheckIfPinClicked(Vector2 position) =>
+        //X
+        !(position.X < (MenuRect.Right - HeaderPadding - HeaderHeight / 2.5f) - HeaderHeight / 2.5f) &&
+        !(position.X > (MenuRect.Right - HeaderPadding - HeaderHeight / 2.5f) + HeaderHeight / 2.5f) &&
+        //Y
+        !(position.Y < _position.Y - HeaderHeight / 2.5f) && 
+        !(position.Y > _position.Y + HeaderHeight / 2.5f);
 
     internal Vector2 CalculateHeaderOffset(Vector2 position) => new Vector2(_position.X - position.X, _position.Y - position.Y);
 
