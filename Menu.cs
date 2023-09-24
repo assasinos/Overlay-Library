@@ -185,7 +185,9 @@ public class Menu
         
         //Draw Each control
         var currentY = _position.Y + HeaderHeight;
-        foreach (var control in _menuControls)
+        //In case the controls are changed while drawing
+        var localMenuControls = _menuControls.ToArray();
+        foreach (var control in localMenuControls)
         {
             control.DrawControl(new SKPoint(_position.X, currentY), skCanvas);
             
