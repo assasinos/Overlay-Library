@@ -23,7 +23,9 @@ public class Overlay : IDisposable
     private bool _isDragging;
     private bool _isOverlayActive;
     
-    private KeyboardHook _keyboardHook = null!;
+    
+    //Expose if someone would need to do something with it
+    public KeyboardHook KeyboardHook = null!;
     
     private readonly List<Menu> _menus = new();
 
@@ -92,9 +94,9 @@ public class Overlay : IDisposable
 
             #region Keyboard
 
-            _keyboardHook = new KeyboardHook(overlayKey);
+            KeyboardHook = new KeyboardHook(overlayKey);
             
-            _keyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
+            KeyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
 
             #endregion
             
@@ -247,7 +249,7 @@ public class Overlay : IDisposable
         _grContext.Dispose();
         _skSurface.Dispose();
         _skCanvas.Dispose();
-        _keyboardHook.Stop();
+        KeyboardHook.Stop();
         
     }
 
