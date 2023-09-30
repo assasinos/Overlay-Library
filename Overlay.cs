@@ -10,7 +10,7 @@ using SkiaSharp;
 
 namespace OverlayLibrary;
 
-public class Overlay : IDisposable
+public class Overlay : IDisposable, IAsyncDisposable
 {
     private readonly Process _overlaidProcess;
     private readonly IWindow _window;
@@ -18,7 +18,7 @@ public class Overlay : IDisposable
     private SKSurface _skSurface;
     private SKCanvas _skCanvas;
     private readonly Process _thisProcess = Process.GetCurrentProcess();
-
+    
     private int _defaultWindowLong;
     private bool _isDragging;
     private bool _isOverlayActive;
@@ -26,6 +26,8 @@ public class Overlay : IDisposable
     
     //Expose if someone would need to do something with it
     public KeyboardHook KeyboardHook = null!;
+    
+    public bool isDisposed;
     
     private readonly List<Menu> _menus = new();
 
@@ -241,17 +243,7 @@ public class Overlay : IDisposable
 
     
     
-    public void Dispose()
-    {
-        _overlaidProcess.Dispose();
-        _window.Close();
-        _window.Dispose();
-        _grContext.Dispose();
-        _skSurface.Dispose();
-        _skCanvas.Dispose();
-        KeyboardHook.Stop();
-        
-    }
+
 
 
 
@@ -344,6 +336,38 @@ public class Overlay : IDisposable
 
     #endregion
 
-    
-    
+
+    public async ValueTask DisposeAsync()
+    {
+        await CastAndDispose(_overlaidProcess);
+        _window.Close();
+        await CastAndDispose(_window);
+        await CastAndDispose(_grContext);
+        await CastAndDispose(_skSurface);
+        await CastAndDispose(_skCanvas);
+        await CastAndDispose(_thisProcess);
+        isDisposed = true;
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
+    public void Dispose()
+    {
+        _overlaidProcess.Dispose();
+        _window.Close();
+        _window.Dispose();
+        _grContext.Dispose();
+        _skSurface.Dispose();
+        _skCanvas.Dispose();
+        KeyboardHook.Stop();
+        isDisposed = true;
+        
+    }
 }
