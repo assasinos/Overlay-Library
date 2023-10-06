@@ -18,7 +18,7 @@ public class ButtonControl : IControl
     };
     
     
-    
+    public event EventHandler? Click;
     private string Text { get; set; }
     private SKPaint Paint { get; set; }
     
@@ -54,5 +54,10 @@ public class ButtonControl : IControl
             X = bound.Width + ButtonPadding,
             Y = bound.Height + ButtonPadding
         };
+    }
+
+    internal virtual void OnClick()
+    {
+        Click?.Invoke(this, EventArgs.Empty);
     }
 }
