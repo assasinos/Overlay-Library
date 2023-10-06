@@ -156,6 +156,11 @@ public class Overlay : IDisposable, IAsyncDisposable
         {
             menu.IsPinned = !menu.IsPinned;
         }
+
+        foreach (var menu in _menus.Where(menu => menu.ContainsButton()))
+        {
+            menu.CheckForButtonClicked(position);
+        }
         
     }
     
