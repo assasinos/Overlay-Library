@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using OverlayLibrary.Controls;
+using Silk.NET.Input;
 using SkiaSharp;
 
 namespace OverlayLibrary;
@@ -68,13 +69,7 @@ public class Menu
     private SKPoint _position;
     
     #endregion
-
     
-    
-    
-    
-    
-
 
     public Menu(string name, SKPoint position, bool startPinned = true)
     {
@@ -114,7 +109,6 @@ public class Menu
     /// </summary>
     private Vector2 GetAllControlsRect()
     {
-        
         
         var vec = new Vector2
         {
@@ -195,6 +189,39 @@ public class Menu
         }
     }
 
+    
+    internal bool ContainsButton()
+    {
+        return _menuControls.Any(x => x is ButtonControl);
+    }
+    
+
+    internal void CheckForButtonClicked(Vector2 position)
+    {
+        
+        var currentY = _position.Y + HeaderHeight;
+        //In case the controls are changed while drawing
+        var localMenuControls = _menuControls.ToArray();
+        foreach (var control in localMenuControls)
+        {
+            if (control is not ButtonControl buttonControl)
+            {
+                currentY += control.CalculateControlRect().Y + ControlBottomMargin;
+                continue;
+            }
+            
+            var buttonRect = new SKRect(_position.X, currentY, _position.X + buttonControl.CalculateControlRect().X, currentY + buttonControl.CalculateControlRect().Y);
+            if (buttonRect.Contains(position.X, position.Y))
+            {
+                buttonControl.OnClick();
+                //There should be only one button in this place
+                return;
+            }
+            
+            currentY += control.CalculateControlRect().Y + ControlBottomMargin;
+        }
+        
+    }
     
     internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y) && !CheckIfPinClicked(position);
 
