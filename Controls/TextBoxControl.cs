@@ -11,10 +11,13 @@ public class TextBoxControl : IControl
     
     private int _cursorPosition = 0;
     
+    internal bool isFocused = true;
+    
     public TextBoxControl(string text, SKPaint paint)
     {
         Text = text;
         Paint = paint;
+        _cursorPosition = text.Length;
     }
     
     private const float ButtonPadding = 10f;
@@ -30,7 +33,15 @@ public class TextBoxControl : IControl
         Color = new SKColor(0, 0, 0, 255),
         Style = SKPaintStyle.Stroke
     };
+
+    private static readonly SKPaint CursorPaint = new SKPaint()
+    {
+        Color = SKColors.White
+    };
     
+    
+    private bool CursorBlink = false;
+    private int _cursorBlinkTimer = 0;
     
     public void DrawControl(SKPoint point, SKCanvas skCanvas)
     {
@@ -42,7 +53,25 @@ public class TextBoxControl : IControl
         skCanvas.DrawRoundRect(new SKRoundRect(new SKRect(point.X, point.Y, point.X + textRect.X + ButtonPadding, point.Y + textRect.Y +ButtonPadding/2), ButtonRadius, ButtonRadius), BorderPaint);
         
         skCanvas.DrawText(Text, point.X + ButtonPadding, point.Y + textRect.Y - ButtonPadding/4, Paint);
+
+        if (!isFocused) return;
         
+        var cursorPosition = _cursorPosition;
+        if (cursorPosition > Text.Length)
+        {
+            cursorPosition = Text.Length;
+        }
+
+        CursorPaint.Color = CursorBlink ? SKColors.White : SKColors.Transparent;
+        var cursorX = point.X + ButtonPadding + Paint.MeasureText(Text[..cursorPosition]);
+        skCanvas.DrawLine(cursorX, point.Y + ButtonPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
+        
+        _cursorBlinkTimer++;
+
+        if (_cursorBlinkTimer <= 30) return;
+        _cursorBlinkTimer = 0;
+        CursorBlink = !CursorBlink;
+
     }
 
     public Vector2 CalculateControlRect()
