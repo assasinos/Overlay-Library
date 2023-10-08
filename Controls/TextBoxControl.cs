@@ -11,8 +11,8 @@ public class TextBoxControl : IControl
     
     public string Text { get; set; }
     private SKPaint Paint { get; set; }
-    
-    private int _cursorPosition = 0;
+
+    private int _cursorPosition;
     
     internal bool isFocused = false;
     
