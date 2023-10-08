@@ -5,6 +5,8 @@ namespace OverlayLibrary.Controls;
 
 public class ButtonControl : IControl
 {
+    public bool Interactive { get; set; } = true;
+    
     
     private static readonly SKPaint BackgroundPaint = new SKPaint()
     {
@@ -31,7 +33,7 @@ public class ButtonControl : IControl
     private const float ButtonPadding = 10f;
     private const float ButtonRadius = 5f;
     
-    
+
     public void DrawControl(SKPoint point, SKCanvas skCanvas)
     {
         var textRect = CalculateControlRect();

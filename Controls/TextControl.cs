@@ -5,6 +5,8 @@ namespace OverlayLibrary.Controls;
 
 public class TextControl : IControl
 {
+    public bool Interactive { get; set; } = true;
+    
     
     private string Text { get; set; }
 

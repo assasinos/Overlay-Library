@@ -6,12 +6,15 @@ namespace OverlayLibrary.Controls;
 public class TextBoxControl : IControl
 {
     
+    public bool Interactive { get; set; } = true;
+    
+    
     public string Text { get; set; }
     private SKPaint Paint { get; set; }
     
     private int _cursorPosition = 0;
     
-    internal bool isFocused = true;
+    internal bool isFocused = false;
     
     public TextBoxControl(string text, SKPaint paint)
     {
@@ -40,7 +43,7 @@ public class TextBoxControl : IControl
     };
     
     
-    private bool CursorBlink = false;
+    private bool _cursorBlink = false;
     private int _cursorBlinkTimer = 0;
     
     public void DrawControl(SKPoint point, SKCanvas skCanvas)
@@ -62,7 +65,7 @@ public class TextBoxControl : IControl
             cursorPosition = Text.Length;
         }
 
-        CursorPaint.Color = CursorBlink ? SKColors.White : SKColors.Transparent;
+        CursorPaint.Color = _cursorBlink ? SKColors.White : SKColors.Transparent;
         var cursorX = point.X + ButtonPadding + Paint.MeasureText(Text[..cursorPosition]);
         skCanvas.DrawLine(cursorX, point.Y + ButtonPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
         
@@ -70,7 +73,7 @@ public class TextBoxControl : IControl
 
         if (_cursorBlinkTimer <= 30) return;
         _cursorBlinkTimer = 0;
-        CursorBlink = !CursorBlink;
+        _cursorBlink = !_cursorBlink;
 
     }
 
