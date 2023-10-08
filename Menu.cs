@@ -196,7 +196,7 @@ public class Menu
     }
     
 
-    internal void CheckForButtonClicked(Vector2 position)
+    internal void CheckForInteractiveControlClicked(Vector2 position)
     {
         
         var currentY = _position.Y + HeaderHeight;
@@ -204,19 +204,38 @@ public class Menu
         var localMenuControls = _menuControls.ToArray();
         foreach (var control in localMenuControls)
         {
-            if (control is not ButtonControl buttonControl)
+            if (!control.Interactive)
             {
                 currentY += control.CalculateControlRect().Y + ControlBottomMargin;
                 continue;
             }
+
+            var controlRect = control.CalculateControlRect();
             
-            var buttonRect = new SKRect(_position.X, currentY, _position.X + buttonControl.CalculateControlRect().X, currentY + buttonControl.CalculateControlRect().Y);
-            if (buttonRect.Contains(position.X, position.Y))
+            //Implementation for each interactive control when clicked
+            switch (control)
             {
-                buttonControl.OnClick();
-                //There should be only one button in this place
-                return;
+                case ButtonControl buttonControl:
+                {
+                    var buttonRect = new SKRect(_position.X, currentY, _position.X + controlRect.X, currentY + controlRect.Y);
+                    if (buttonRect.Contains(position.X, position.Y))
+                    {
+                        buttonControl.OnClick();
+                        //There should be only one button in this place
+                        return;
+                    }
+                    break;
+                }
+                case TextBoxControl textBoxControl:
+                    throw new NotImplementedException("This control is not implemented yet");
+                    break;
+                default:
+                    throw new NotImplementedException("This control is not implemented");
             }
+            
+            
+            
+
             
             currentY += control.CalculateControlRect().Y + ControlBottomMargin;
         }

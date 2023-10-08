@@ -159,7 +159,7 @@ public class Overlay : IDisposable, IAsyncDisposable
 
         foreach (var menu in _menus.Where(menu => menu.ContainsButton()))
         {
-            menu.CheckForButtonClicked(position);
+            menu.CheckForInteractiveControlClicked(position);
         }
         
     }
