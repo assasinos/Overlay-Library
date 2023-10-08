@@ -210,15 +210,15 @@ public class Menu
                 continue;
             }
 
-            var controlRect = control.CalculateControlRect();
+            var controlSize = control.CalculateControlRect();
+            var controlRect = new SKRect(_position.X, currentY, _position.X + controlSize.X, currentY + controlSize.Y);
             
             //Implementation for each interactive control when clicked
             switch (control)
             {
                 case ButtonControl buttonControl:
                 {
-                    var buttonRect = new SKRect(_position.X, currentY, _position.X + controlRect.X, currentY + controlRect.Y);
-                    if (buttonRect.Contains(position.X, position.Y))
+                    if (controlRect.Contains(position.X, position.Y))
                     {
                         buttonControl.OnClick();
                         //There should be only one button in this place
@@ -227,9 +227,14 @@ public class Menu
                     break;
                 }
                 case TextBoxControl textBoxControl:
-                    throw new NotImplementedException("This control is not implemented yet");
+                    if (controlRect.Contains(position.X, position.Y))
+                    {
+                        textBoxControl.isFocused = true;
+                        return;
+                    }
                     break;
                 default:
+                    var a = control is TextControl;
                     throw new NotImplementedException("This control is not implemented");
             }
             
@@ -239,7 +244,16 @@ public class Menu
             
             currentY += control.CalculateControlRect().Y + ControlBottomMargin;
         }
-        
+        //If no control was clicked, unfocus textboxes
+        foreach (var control in localMenuControls)
+        {
+            if (control is TextBoxControl textBoxControl)
+            {
+                textBoxControl.isFocused = false;
+            }
+        }
+
+
     }
     
     internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y) && !CheckIfPinClicked(position);
