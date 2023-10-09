@@ -43,6 +43,24 @@ public class TextBoxControl : IControl
     };
     
     
+    
+    internal void RemoveCharacter()
+    {
+        if (_cursorPosition == 0) return;
+        Text = Text.Remove(_cursorPosition - 1, 1);
+        _cursorPosition--;
+    }
+
+    internal void InsertCharacter(string character)
+    {
+        Text = Text.Insert(_cursorPosition, character);
+        _cursorPosition++;
+    }
+
+    
+    
+    
+    
     private bool _cursorBlink = false;
     private int _cursorBlinkTimer = 0;
     
@@ -77,6 +95,7 @@ public class TextBoxControl : IControl
 
     }
 
+    //TODO: Add a Min and max width Or just static width
     public Vector2 CalculateControlRect()
     {
         var bound = new SKRect();
