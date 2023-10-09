@@ -196,7 +196,7 @@ public class Menu
     }
     
 
-    internal void CheckForInteractiveControlClicked(Vector2 position)
+    internal IControl? CheckForInteractiveControlClicked(Vector2 position)
     {
         
         var currentY = _position.Y + HeaderHeight;
@@ -222,7 +222,7 @@ public class Menu
                     {
                         buttonControl.OnClick();
                         //There should be only one button in this place
-                        return;
+                        return null;
                     }
                     break;
                 }
@@ -230,11 +230,10 @@ public class Menu
                     if (controlRect.Contains(position.X, position.Y))
                     {
                         textBoxControl.isFocused = true;
-                        return;
+                        return textBoxControl;
                     }
                     break;
                 default:
-                    var a = control is TextControl;
                     throw new NotImplementedException("This control is not implemented");
             }
             
@@ -253,7 +252,7 @@ public class Menu
             }
         }
 
-
+        return null;
     }
     
     internal bool CheckIfHeaderClicked(Vector2 position) => _headerRect.Contains(position.X, position.Y) && !CheckIfPinClicked(position);
