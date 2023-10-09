@@ -24,15 +24,14 @@ public sealed class KeyboardHook
         while (!_shouldStop)
         {
             
-            if ((GetAsyncKeyState(_registeredKey) & 0x01) == 1 )
-            {
-                OnKeyPressed();
-            }
+            if (IsKeyDown(_registeredKey))OnKeyPressed();
             
             Thread.Sleep(10);
         }
         
     }
+    
+    
 
     private void OnKeyPressed()
     {
