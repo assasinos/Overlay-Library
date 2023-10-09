@@ -6,25 +6,25 @@ namespace OverlayLibrary;
 public class WinApi
 {
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+    internal static extern int GetWindowLong(IntPtr hWnd, int nIndex);
     [DllImport("user32.dll")]
-    public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-    public const int GWL_EXSTYLE = -20;
-    public const int WS_EX_LAYERED = 0x80000;
-    public const int WS_EX_TRANSPARENT = 0x20;
+    internal static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    internal const int GWL_EXSTYLE = -20;
+    internal const int WS_EX_LAYERED = 0x80000;
+    internal const int WS_EX_TRANSPARENT = 0x20;
     
     
     
     [DllImport("user32.dll", SetLastError=true)]
-    public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+    internal static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
     
     [StructLayout(LayoutKind.Sequential)]
-    public struct RECT
+    internal struct RECT
     {
-        public int Left;        // x position of upper-left corner
-        public int Top;         // y position of upper-left corner
-        public int Right;       // x position of lower-right corner
-        public int Bottom;      // y position of lower-right corner
+        internal int Left;        // x position of upper-left corner
+        internal int Top;         // y position of upper-left corner
+        internal int Right;       // x position of lower-right corner
+        internal int Bottom;      // y position of lower-right corner
 
         public override bool Equals(object? obj)
         {
@@ -34,7 +34,7 @@ public class WinApi
             return other.Left == Left && other.Top == Top && other.Right == Right && other.Bottom == Bottom;
         }
 
-        public bool Equals(RECT other)
+        internal bool Equals(RECT other)
         {
             return Left == other.Left && Top == other.Top && Right == other.Right && Bottom == other.Bottom;
         }
@@ -58,20 +58,25 @@ public class WinApi
     
 
 [DllImport("user32.dll", SetLastError=true)]
-public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, UInt32 uFlags);
+internal static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, UInt32 uFlags);
 
 [DllImport("user32.dll")]
-public static extern IntPtr GetForegroundWindow();
+internal static extern IntPtr GetForegroundWindow();
 
 
 [DllImport("user32.dll")]
 [return: MarshalAs(UnmanagedType.Bool)]
-public static extern bool SetForegroundWindow(IntPtr hWnd);
+internal static extern bool SetForegroundWindow(IntPtr hWnd);
 
 
 
     [DllImport("user32.dll")]
-    public static extern short GetAsyncKeyState(VK vKey);
+    internal static extern short GetAsyncKeyState(VK vKey);
+    
+    internal static bool IsKeyDown(VK key)
+    {
+        return (GetAsyncKeyState(key) & 0x8000) != 0;
+    }
     
 
     
