@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using OverlayLibrary.Controls;
 using OverlayLibrary.Hooks;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -22,6 +23,9 @@ public class Overlay : IDisposable, IAsyncDisposable
     private int _defaultWindowLong;
     private bool _isDragging;
     private bool _isOverlayActive;
+    
+    
+    private IControl? _activeControl = null;
     
     
     //Expose if someone would need to do something with it
@@ -74,9 +78,7 @@ public class Overlay : IDisposable, IAsyncDisposable
             });
 
             #region Mouse
-
             
-
             
             if ( _window.CreateInput().Mice[0] is { } mouse)
             {
@@ -96,10 +98,22 @@ public class Overlay : IDisposable, IAsyncDisposable
 
             #region Keyboard
 
-            KeyboardHook = new KeyboardHook(overlayKey);
+            if (_window.CreateInput().Keyboards[0] is { } keyboard )
+            {
+                //Keyboard hook, works even if the overlay is not focused
+                KeyboardHook = new KeyboardHook(overlayKey);
             
-            KeyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
+                KeyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
 
+            
+                //Keyboard hook, works only if the overlay is focused
+                keyboard.KeyChar += KeyboardOnKeyChar;
+                keyboard.KeyDown += KeyboardOnKeyDown;
+            }
+
+
+
+            
             #endregion
             
             
@@ -119,6 +133,43 @@ public class Overlay : IDisposable, IAsyncDisposable
         _skCanvas = _skSurface.Canvas;
 
 
+    }
+
+    private void KeyboardOnKeyChar(IKeyboard keyboard, char c)
+    {
+        if (_activeControl is null) return;
+
+        switch (_activeControl)
+        {
+            case TextBoxControl textBoxControl:
+                textBoxControl.InsertCharacter(c.ToString());
+                break;
+            default:
+                throw new NotImplementedException($" {_activeControl.GetType()} OnKeyChar case is not implemented");
+        }
+    }
+
+    private async void KeyboardOnKeyDown(IKeyboard keyboard, Key key, int arg2)
+    {
+        if (_activeControl is null) return;
+
+        switch (_activeControl)
+        {
+            case TextBoxControl textBoxControl:
+                if (key != Key.Backspace) return;
+                
+                //IsKeyPressed of IKeyboard is not working properly
+                //Seems to always return true
+                while (WinApi.IsKeyDown(WinApi.VK.BACK))
+                {
+                    textBoxControl.RemoveCharacter();
+                    await Task.Delay(100);
+                }
+                break;
+            default:
+                throw new NotImplementedException($" {_activeControl.GetType()} OnKeyDown case is not implemented");
+        }
+        
     }
 
     #region Events
@@ -159,7 +210,7 @@ public class Overlay : IDisposable, IAsyncDisposable
 
         foreach (var menu in _menus.Where(menu => menu.ContainsButton()))
         {
-            menu.CheckForInteractiveControlClicked(position);
+            _activeControl = menu.CheckForInteractiveControlClicked(position);
         }
         
     }
