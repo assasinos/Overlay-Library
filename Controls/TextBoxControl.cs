@@ -15,16 +15,21 @@ public class TextBoxControl : IControl
     private int _cursorPosition;
     
     internal bool isFocused = false;
+
+    private SKRect _rect;
     
     public TextBoxControl(string text, SKPaint paint)
     {
         Text = text;
         Paint = paint;
+        //Calculate size to fit 8 characters
+        _rect = new();
+        paint.MeasureText("WWWWWWWW", ref _rect);
         _cursorPosition = text.Length;
     }
     
-    private const float ButtonPadding = 10f;
-    private const float ButtonRadius = 5f;
+    private const float TextBoxPadding = 10f;
+    private const float TextBoxRadius = 5f;
     
     private static readonly SKPaint BackgroundPaint = new SKPaint()
     {
@@ -63,17 +68,17 @@ public class TextBoxControl : IControl
     
     private bool _cursorBlink = false;
     private int _cursorBlinkTimer = 0;
-    
+
     public void DrawControl(SKPoint point, SKCanvas skCanvas)
     {
         var textRect = CalculateControlRect();
         //Draw background
-        skCanvas.DrawRoundRect(new SKRoundRect(new SKRect(point.X, point.Y, point.X + textRect.X + ButtonPadding, point.Y + textRect.Y +ButtonPadding /2), ButtonRadius, ButtonRadius), BackgroundPaint);
+        skCanvas.DrawRoundRect(new SKRoundRect(new SKRect(point.X, point.Y, point.X + textRect.X, point.Y + textRect.Y ), TextBoxRadius, TextBoxRadius), BackgroundPaint);
         
         //Draw border
-        skCanvas.DrawRoundRect(new SKRoundRect(new SKRect(point.X, point.Y, point.X + textRect.X + ButtonPadding, point.Y + textRect.Y +ButtonPadding/2), ButtonRadius, ButtonRadius), BorderPaint);
+        skCanvas.DrawRoundRect(new SKRoundRect(new SKRect(point.X, point.Y, point.X + textRect.X , point.Y + textRect.Y ), TextBoxRadius, TextBoxRadius), BorderPaint);
         
-        skCanvas.DrawText(Text, point.X + ButtonPadding, point.Y + textRect.Y - ButtonPadding/4, Paint);
+        skCanvas.DrawText(Text, point.X, point.Y + textRect.Y - TextBoxPadding/4, Paint);
 
         if (!isFocused) return;
         
@@ -84,8 +89,8 @@ public class TextBoxControl : IControl
         }
 
         CursorPaint.Color = _cursorBlink ? SKColors.White : SKColors.Transparent;
-        var cursorX = point.X + ButtonPadding + Paint.MeasureText(Text[..cursorPosition]);
-        skCanvas.DrawLine(cursorX, point.Y + ButtonPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
+        var cursorX = point.X + Paint.MeasureText(Text[..cursorPosition]);
+        skCanvas.DrawLine(cursorX, point.Y + TextBoxPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
         
         _cursorBlinkTimer++;
 
@@ -98,12 +103,10 @@ public class TextBoxControl : IControl
     //TODO: Add a Min and max width Or just static width
     public Vector2 CalculateControlRect()
     {
-        var bound = new SKRect();
-        Paint.MeasureText(Text, ref bound);
         return new Vector2()
         {
-            X = bound.Width + ButtonPadding,
-            Y = bound.Height + ButtonPadding/2
+            X = _rect.Width + TextBoxPadding,
+            Y = _rect.Height + TextBoxPadding/2
         };
     }
     
