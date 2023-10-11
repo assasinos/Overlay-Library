@@ -16,6 +16,9 @@ public class TextBoxControl : IControl
 
     private int _cursorPosition;
     
+    //TODO:Change this
+    private int _cursorPositionInDisplayText;
+    
     internal bool isFocused = false;
 
     private SKRect _rect;
@@ -32,6 +35,7 @@ public class TextBoxControl : IControl
         
         
         _cursorPosition = text.Length;
+        _cursorPositionInDisplayText = 8;
         _indexOfLastCharacterToDisplay = _cursorPosition;
     }
     
@@ -61,12 +65,23 @@ public class TextBoxControl : IControl
         if (_cursorPosition == 0) return;
         Text = Text.Remove(_cursorPosition - 1, 1);
         _cursorPosition--;
+        _indexOfLastCharacterToDisplay--;
+        if ( Text.Length < 8 && _cursorPositionInDisplayText > 0)
+        {
+            _cursorPositionInDisplayText--;
+        }
     }
 
     internal void InsertCharacter(string character)
     {
         Text = Text.Insert(_cursorPosition, character);
         _cursorPosition++;
+        _indexOfLastCharacterToDisplay++;
+        if (Text.Length < 8 && _cursorPositionInDisplayText < 8)
+        {
+            _cursorPositionInDisplayText++;
+        }
+
     }
     
     internal void MoveCursorLeft()
@@ -76,6 +91,13 @@ public class TextBoxControl : IControl
         if (_cursorPosition < _indexOfLastCharacterToDisplay - 8)
         {
             _indexOfLastCharacterToDisplay--;
+            return;
+        }
+
+        if (_cursorPositionInDisplayText > 0)
+        {
+            _cursorPositionInDisplayText--;
+
         }
     }
     
@@ -86,6 +108,12 @@ public class TextBoxControl : IControl
         if (_cursorPosition > _indexOfLastCharacterToDisplay)
         {
             _indexOfLastCharacterToDisplay++;
+            return;
+        }
+        if (_cursorPositionInDisplayText < 8)
+        {
+            _cursorPositionInDisplayText++;
+
         }
     }
 
@@ -109,7 +137,9 @@ public class TextBoxControl : IControl
         
         //Display 8 characters of text based on cursor position
 
-        var textToDisplay = Text[(_indexOfLastCharacterToDisplay-8).._indexOfLastCharacterToDisplay];
+        var firstCharacterToDisplay = _indexOfLastCharacterToDisplay > 8 ? _indexOfLastCharacterToDisplay - 8 : 0;
+        
+        var textToDisplay = Text[firstCharacterToDisplay.._indexOfLastCharacterToDisplay];
         skCanvas.DrawText(textToDisplay, point.X + TextBoxPadding, point.Y + textRect.Y - TextBoxPadding/4, Paint);
         
 
@@ -122,8 +152,9 @@ public class TextBoxControl : IControl
         }
 
         CursorPaint.Color = _cursorBlink ? SKColors.White : SKColors.Transparent;
-        //TODO: Get cursor position
-        //skCanvas.DrawLine(cursorX, point.Y + TextBoxPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
+        var cursorX = point.X + TextBoxPadding + Paint.MeasureText(textToDisplay[.._cursorPositionInDisplayText]);
+        
+        skCanvas.DrawLine(cursorX, point.Y + TextBoxPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
         
         _cursorBlinkTimer++;
 
@@ -133,7 +164,7 @@ public class TextBoxControl : IControl
 
     }
 
-    //TODO: Add a Min and max width Or just static width
+    //TODO: Make The rect more adaptive
     public Vector2 CalculateControlRect()
     {
         return new Vector2()
