@@ -24,10 +24,15 @@ public class TextBoxControl : IControl
     {
         Text = text;
         Paint = paint;
+        
         //Calculate size to fit 8 characters
+        //TODO: Make this dynamic
         _rect = new();
         paint.MeasureText("WWWWWWWW", ref _rect);
+        
+        
         _cursorPosition = text.Length;
+        _indexOfLastCharacterToDisplay = _cursorPosition;
     }
     
     private const float TextBoxPadding = 10f;
@@ -68,12 +73,20 @@ public class TextBoxControl : IControl
     {
         if (_cursorPosition == 0) return;
         _cursorPosition--;
+        if (_cursorPosition < _indexOfLastCharacterToDisplay - 8)
+        {
+            _indexOfLastCharacterToDisplay--;
+        }
     }
     
     internal void MoveCursorRight()
     {
         if (_cursorPosition == Text.Length) return;
         _cursorPosition++;
+        if (_cursorPosition > _indexOfLastCharacterToDisplay)
+        {
+            _indexOfLastCharacterToDisplay++;
+        }
     }
 
     
@@ -82,6 +95,8 @@ public class TextBoxControl : IControl
     
     private bool _cursorBlink = false;
     private int _cursorBlinkTimer = 0;
+    
+    private int _indexOfLastCharacterToDisplay;
 
     public void DrawControl(SKPoint point, SKCanvas skCanvas)
     {
@@ -92,7 +107,11 @@ public class TextBoxControl : IControl
         //Draw border
         skCanvas.DrawRoundRect(new SKRoundRect(new SKRect(point.X, point.Y, point.X + textRect.X , point.Y + textRect.Y ), TextBoxRadius, TextBoxRadius), BorderPaint);
         
-        skCanvas.DrawText(Text, point.X, point.Y + textRect.Y - TextBoxPadding/4, Paint);
+        //Display 8 characters of text based on cursor position
+
+        var textToDisplay = Text[(_indexOfLastCharacterToDisplay-8).._indexOfLastCharacterToDisplay];
+        skCanvas.DrawText(textToDisplay, point.X + TextBoxPadding, point.Y + textRect.Y - TextBoxPadding/4, Paint);
+        
 
         if (!isFocused) return;
         
@@ -103,8 +122,8 @@ public class TextBoxControl : IControl
         }
 
         CursorPaint.Color = _cursorBlink ? SKColors.White : SKColors.Transparent;
-        var cursorX = point.X + Paint.MeasureText(Text[..cursorPosition]);
-        skCanvas.DrawLine(cursorX, point.Y + TextBoxPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
+        //TODO: Get cursor position
+        //skCanvas.DrawLine(cursorX, point.Y + TextBoxPadding/2, cursorX, point.Y + textRect.Y, CursorPaint);
         
         _cursorBlinkTimer++;
 
