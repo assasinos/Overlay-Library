@@ -7,7 +7,9 @@ public sealed class KeyboardHook
     
     private bool _shouldStop = false;
     
-    public event EventHandler? KeyPressed;
+    public event EventHandler? KeyDown;
+    public event EventHandler? KeyUp;
+    
     
     public KeyboardHook(VK registeredKey)
     {
@@ -23,8 +25,19 @@ public sealed class KeyboardHook
     {
         while (!_shouldStop)
         {
-            
-            if (IsKeyDown(_registeredKey))OnKeyPressed();
+
+            if (!IsKeyDown(_registeredKey))
+            {
+                Thread.Sleep(10);
+                continue;
+            }
+            OnKeyDown();
+
+            while (IsKeyDown(_registeredKey))
+            {
+                Thread.Sleep(10);
+            }
+            OnKeyUp();
             
             Thread.Sleep(10);
         }
@@ -33,9 +46,13 @@ public sealed class KeyboardHook
     
     
 
-    private void OnKeyPressed()
+    private void OnKeyDown()
     {
-        KeyPressed?.Invoke(this, EventArgs.Empty);
+        KeyDown?.Invoke(this, EventArgs.Empty);
+    }
+    private void OnKeyUp()
+    {
+        KeyUp?.Invoke(this, EventArgs.Empty);
     }
     
     public void Stop()
