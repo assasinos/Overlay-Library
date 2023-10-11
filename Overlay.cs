@@ -158,14 +158,41 @@ public class Overlay : IDisposable, IAsyncDisposable
         switch (_activeControl)
         {
             case TextBoxControl textBoxControl:
-                if (key != Key.Backspace) return;
                 
-                //IsKeyPressed of IKeyboard is not working properly
-                //Seems to always return true
-                while (IsKeyDown(VK.BACK))
+                switch (key)
                 {
-                    textBoxControl.RemoveCharacter();
-                    await Task.Delay(100);
+                    case Key.Backspace:
+                    {
+                        //IsKeyPressed of IKeyboard is not working properly
+                        //Seems to always return true
+                        while (IsKeyDown(VK.BACK))
+                        {
+                            textBoxControl.RemoveCharacter();
+                            await Task.Delay(100);
+                        }
+
+                        break;
+                    }
+                    case Key.Left:
+                    {
+                        while (IsKeyDown(VK.LEFT))
+                        {
+                            textBoxControl.MoveCursorLeft();
+                            await Task.Delay(100);
+                        }
+
+                        break;
+                    }
+                    case Key.Right:
+                    {
+                        while (IsKeyDown(VK.RIGHT))
+                        {
+                            textBoxControl.MoveCursorRight();
+                            await Task.Delay(100);
+                        }
+
+                        break;
+                    }
                 }
                 break;
             default:

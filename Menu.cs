@@ -126,7 +126,7 @@ public class Menu
         
         return vec;
     }
-
+    
     private void UpdateMenuRect()
     {
         var allControlsRect = GetAllControlsRect();

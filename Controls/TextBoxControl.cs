@@ -7,9 +7,11 @@ public class TextBoxControl : IControl
 {
     
     public bool Interactive { get; set; } = true;
-    
-    
+
+
     public string Text { get; set; }
+    
+
     private SKPaint Paint { get; set; }
 
     private int _cursorPosition;
@@ -59,6 +61,18 @@ public class TextBoxControl : IControl
     internal void InsertCharacter(string character)
     {
         Text = Text.Insert(_cursorPosition, character);
+        _cursorPosition++;
+    }
+    
+    internal void MoveCursorLeft()
+    {
+        if (_cursorPosition == 0) return;
+        _cursorPosition--;
+    }
+    
+    internal void MoveCursorRight()
+    {
+        if (_cursorPosition == Text.Length) return;
         _cursorPosition++;
     }
 
