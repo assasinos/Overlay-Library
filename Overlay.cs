@@ -7,6 +7,7 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Glfw;
 using SkiaSharp;
+using static OverlayLibrary.WinApi;
 
 
 namespace OverlayLibrary;
@@ -35,7 +36,7 @@ public class Overlay : IDisposable, IAsyncDisposable
     
     private readonly List<Menu> _menus = new();
 
-    public Overlay(Process overlaidProcess, WinApi.VK overlayKey = WinApi.VK.INSERT)
+    public Overlay(Process overlaidProcess, VK overlayKey = VK.INSERT)
     {
         _overlaidProcess = overlaidProcess;
         
@@ -44,7 +45,7 @@ public class Overlay : IDisposable, IAsyncDisposable
         var options = WindowOptions.Default;
         
         //Set the size of the window to the size of the process
-        WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out var rect);
+        GetWindowRect(_overlaidProcess.MainWindowHandle, out var rect);
         var size = CalculateWindowSize(rect);
         options.Size = size;
 
@@ -103,7 +104,7 @@ public class Overlay : IDisposable, IAsyncDisposable
                 //Keyboard hook, works even if the overlay is not focused
                 KeyboardHook = new KeyboardHook(overlayKey);
             
-                KeyboardHook.KeyPressed += KeyboardHookOnKeyPressed;
+                KeyboardHook.KeyUp += KeyboardHookOnKeyPressed;
 
             
                 //Keyboard hook, works only if the overlay is focused
@@ -117,7 +118,7 @@ public class Overlay : IDisposable, IAsyncDisposable
             #endregion
             
             
-            _defaultWindowLong = WinApi.GetWindowLong(_thisProcess.MainWindowHandle, WinApi.GWL_EXSTYLE);
+            _defaultWindowLong = GetWindowLong(_thisProcess.MainWindowHandle, GWL_EXSTYLE);
             MakeWindowTransparent();
             
         };
@@ -151,6 +152,7 @@ public class Overlay : IDisposable, IAsyncDisposable
 
     private async void KeyboardOnKeyDown(IKeyboard keyboard, Key key, int arg2)
     {
+        
         if (_activeControl is null) return;
 
         switch (_activeControl)
@@ -160,7 +162,7 @@ public class Overlay : IDisposable, IAsyncDisposable
                 
                 //IsKeyPressed of IKeyboard is not working properly
                 //Seems to always return true
-                while (WinApi.IsKeyDown(WinApi.VK.BACK))
+                while (IsKeyDown(VK.BACK))
                 {
                     textBoxControl.RemoveCharacter();
                     await Task.Delay(100);
@@ -245,8 +247,8 @@ public class Overlay : IDisposable, IAsyncDisposable
             }
             
             //Retrieve the position of the process
-            WinApi.GetWindowRect(_overlaidProcess.MainWindowHandle, out var overlaidRect);
-            WinApi.GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
+            GetWindowRect(_overlaidProcess.MainWindowHandle, out var overlaidRect);
+            GetWindowRect(_thisProcess.MainWindowHandle, out var overlayRect);
             
             //Check if window is minimized
 
@@ -352,7 +354,7 @@ public class Overlay : IDisposable, IAsyncDisposable
 
     
     
-    private Vector2D<int> CalculateWindowSize(WinApi.RECT rect)
+    private Vector2D<int> CalculateWindowSize(RECT rect)
     {
         var width = rect.Right - rect.Left;
         var height = rect.Bottom - rect.Top;
@@ -360,9 +362,9 @@ public class Overlay : IDisposable, IAsyncDisposable
     }
     
     
-    private void ChangeWindowSize(WinApi.RECT position,Vector2D<int> size)
+    private void ChangeWindowSize(RECT position,Vector2D<int> size)
     {
-        WinApi.SetWindowPos(
+        SetWindowPos(
             _thisProcess.MainWindowHandle,
             //Optional
             IntPtr.Zero,
@@ -380,14 +382,16 @@ public class Overlay : IDisposable, IAsyncDisposable
     
     private void MakeWindowTransparent()
     {
-        WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong | WinApi.WS_EX_LAYERED | WinApi.WS_EX_TRANSPARENT);
-        WinApi.SetForegroundWindow(_overlaidProcess.MainWindowHandle);
+        SetWindowLong(_thisProcess.MainWindowHandle,GWL_EXSTYLE , _defaultWindowLong | WS_EX_LAYERED | WS_EX_TRANSPARENT);
+        SetForegroundWindow(_overlaidProcess.MainWindowHandle);
+        _activeControl = null;
     }
     
     private void RevertWindowTransparency()
     {
-        WinApi.SetWindowLong(_thisProcess.MainWindowHandle,WinApi.GWL_EXSTYLE , _defaultWindowLong);
-        WinApi.SetForegroundWindow(_thisProcess.MainWindowHandle);
+        SetWindowLong(_thisProcess.MainWindowHandle,GWL_EXSTYLE , _defaultWindowLong);
+        SetForegroundWindow(_thisProcess.MainWindowHandle);
+        
     }
 
     #endregion
